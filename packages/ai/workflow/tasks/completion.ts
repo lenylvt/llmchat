@@ -1,9 +1,8 @@
 import { createTask } from '@repo/orchestrator';
+import { buildStandardSystemPrompt } from '../../prompts/standard-system';
 import { runGrokCompletion } from '../../run-grok-completion';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
-import { ChunkBuffer, getHumanizedDate, handleError } from '../utils';
-
-const MAX_ALLOWED_CUSTOM_INSTRUCTIONS_LENGTH = 6000;
+import { ChunkBuffer, handleError } from '../utils';
 
 export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSchema>({
     name: 'completion',
@@ -18,12 +17,7 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
                 .get('messages')
                 ?.filter(m => (m.role === 'user' || m.role === 'assistant') && !!m.content) || [];
 
-        const dateLine = `Today is ${getHumanizedDate()}.`;
-        const system =
-            customInstructions &&
-            customInstructions.length < MAX_ALLOWED_CUSTOM_INSTRUCTIONS_LENGTH
-                ? `${dateLine} ${customInstructions}\n\nYou are a helpful Grok assistant.`
-                : `${dateLine} You are a helpful Grok assistant.`;
+        const system = buildStandardSystemPrompt(customInstructions);
 
         const chunkBuffer = new ChunkBuffer({
             threshold: 200,
