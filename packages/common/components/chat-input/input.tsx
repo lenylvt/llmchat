@@ -129,7 +129,7 @@ export const ChatInput = ({
     };
 
     const renderChatInput = () => (
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
             <motion.div
                 className="w-full px-3"
                 initial={{ opacity: 0, y: 10 }}
@@ -292,30 +292,29 @@ const AnimatedTitles = ({ titles = [] }: AnimatedTitlesProps) => {
 
         setGreeting(getTimeBasedGreeting());
 
-        // Update the greeting if the component is mounted during a time transition
         const interval = setInterval(() => {
-            const newGreeting = getTimeBasedGreeting();
-            if (newGreeting !== greeting) {
-                setGreeting(newGreeting);
-            }
-        }, 60000); // Check every minute
+            setGreeting(prev => {
+                const next = getTimeBasedGreeting();
+                return next !== prev ? next : prev;
+            });
+        }, 60000);
 
         return () => clearInterval(interval);
-    }, [greeting]);
+    }, []);
 
     return (
         <Flex
             direction="col"
             className="relative h-[60px] w-full items-center justify-center overflow-hidden"
         >
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="wait" initial={false}>
                 <motion.h1
                     key={greeting}
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 5 }}
                     transition={{
-                        duration: 0.8,
+                        duration: 0.26,
                         ease: 'easeInOut',
                     }}
                     className="from-muted-foreground/50 via-muted-foreground/40 to-muted-foreground/20 bg-gradient-to-r bg-clip-text text-center text-[32px] font-semibold tracking-tight text-transparent"

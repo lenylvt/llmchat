@@ -8,7 +8,7 @@ import * as React from 'react';
 import { cn } from '../lib/utils';
 
 const Dialog = ({ children, ...props }: DialogPrimitive.DialogProps) => (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
         <DialogPrimitive.Root {...props}>{children}</DialogPrimitive.Root>
     </AnimatePresence>
 );

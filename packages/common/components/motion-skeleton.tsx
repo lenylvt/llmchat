@@ -9,7 +9,7 @@ export const MotionSkeleton = ({ className }: { className?: string }) => {
             initial={{ opacity: 0, width: '0%' }}
             animate={{ opacity: 1, width: '100%' }}
             exit={{ opacity: 0, width: '0%' }}
-            transition={{ duration: 2, ease: 'easeInOut', damping: 50, stiffness: 20 }}
+            transition={{ duration: 0.28, ease: 'easeOut' }}
         >
             <Skeleton
                 className={cn(

@@ -156,7 +156,7 @@ export const AgentActivityCard = memo(({ steps, threadItem }: AgentActivityCardP
             type="button"
             className={cn(
                 'text-muted-foreground hover:text-foreground hover:bg-secondary/80 flex w-full max-w-md flex-col gap-0.5 rounded-lg px-2.5 py-2 text-left',
-                'transition-colors active:scale-[0.98] motion-reduce:active:scale-100'
+                'transition-colors active:scale-[0.96] motion-reduce:active:scale-100'
             )}
             onClick={openDrawer}
             aria-live="polite"

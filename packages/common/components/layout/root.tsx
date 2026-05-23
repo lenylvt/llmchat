@@ -126,7 +126,7 @@ export const SideDrawer = () => {
     const isThreadPage = pathname.startsWith('/chat/');
 
     return (
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
             {sideDrawer.open && isThreadPage && (
                 <motion.div
                     initial={{ opacity: 0, x: 40 }}

@@ -23,6 +23,9 @@
     --font-clash: 'Clash Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
     --font-geist-mono: ui-monospace, 'SF Mono', Menlo, monospace;
     --font-bricolage: var(--font-inter);
+    --motion-duration-fast: 150ms;
+    --motion-duration-normal: 220ms;
+    --motion-duration-enter: 280ms;
 }
 
 @keyframes fade458 {
@@ -45,8 +48,17 @@
 
 .animate-enter {
     --delay: 100ms;
-    animation: ui-enter 800ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    animation: ui-enter var(--motion-duration-enter) cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
     animation-delay: calc(var(--delay) * var(--stagger, 0));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-enter {
+        animation: none;
+        opacity: 1;
+        transform: none;
+        filter: none;
+    }
 }
 
 .animate-enter-individual {
@@ -164,6 +176,14 @@
 
     body {
         @apply bg-background text-foreground font-sans font-normal;
+        text-wrap: pretty;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        text-wrap: balance;
     }
 
     strong {

@@ -81,7 +81,7 @@ export const Sidebar = () => {
     return (
         <div
             className={cn(
-                'relative bottom-0 left-0 top-0 z-[50] flex h-[100dvh] flex-shrink-0 flex-col py-2 transition-all duration-200',
+                'relative bottom-0 left-0 top-0 z-[50] flex h-[100dvh] flex-shrink-0 flex-col py-2 transition-[width,box-shadow] duration-200',
                 isSidebarOpen
                     ? 'shadow-xs top-0 h-full w-[230px] bg-[#f4f4f4]'
                     : 'w-[50px] bg-[#f4f4f4]'

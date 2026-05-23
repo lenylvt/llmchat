@@ -174,7 +174,7 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                     className="border-border min-h-full w-[1px] flex-1 border-l border-dashed"
                     initial={{ height: 0 }}
                     animate={{ height: '100%' }}
-                    transition={{ duration: 0.5 }}
+                    transition={{ duration: 0.26 }}
                 />
             </div>
             <motion.div

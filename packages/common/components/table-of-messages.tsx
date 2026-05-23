@@ -37,7 +37,7 @@ export const TableOfMessages = () => {
                                 <div
                                     key={index}
                                     className={cn(
-                                        'h-[1px] w-4 cursor-pointer rounded-full transition-all duration-200',
+                                        'h-[1px] w-4 cursor-pointer rounded-full transition-[width,background-color] duration-200',
                                         isActive ? 'bg-brand w-3' : 'bg-foreground/20 w-2'
                                     )}
                                     onClick={e => {
@@ -54,7 +54,7 @@ export const TableOfMessages = () => {
                         })}
                     </div>
                 </PopoverTrigger>
-                <AnimatePresence>
+                <AnimatePresence initial={false}>
                     {isHovering && (
                         <PopoverContent
                             asChild

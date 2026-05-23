@@ -1,0 +1,10 @@
+{
+  "version": "1",
+  "projects": {
+    "web": {
+      "cwd": "apps/web",
+      "start": "bun run dev",
+      "url": "http://localhost:5173"
+    }
+  }
+}

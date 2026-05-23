@@ -34,7 +34,7 @@ export const RecentThreads = () => {
                     .map(thread => (
                         <div
                             key={thread.id}
-                            className="bg-background border-border flex cursor-pointer flex-col gap-1 rounded-2xl border p-4 text-sm transition-all duration-200 hover:border-yellow-900/20 hover:bg-yellow-700/5 hover:shadow-sm"
+                            className="bg-background border-border flex cursor-pointer flex-col gap-1 rounded-2xl border p-4 text-sm transition-[border-color,background-color,box-shadow] duration-200 hover:border-yellow-900/20 hover:bg-yellow-700/5 hover:shadow-sm active:scale-[0.96] motion-reduce:active:scale-100"
                             onClick={() =>
                                 navigate({
                                     to: '/chat/$threadId',
