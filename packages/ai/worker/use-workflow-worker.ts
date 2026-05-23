@@ -1,5 +1,5 @@
 import { ChatMode } from '@repo/shared/config';
-import type { ToolCall, ToolResult } from '@repo/shared/types';
+import type { ThreadArtifact, ToolCall, ToolResult } from '@repo/shared/types';
 import { CoreAssistantMessage, CoreUserMessage } from 'ai';
 import { useEffect, useRef, useState } from 'react';
 
@@ -110,6 +110,8 @@ export function useWorkflowWorker(onMessage?: (data: any) => void, onAbort?: () 
         messages,
         config,
         apiKeys,
+        threadArtifact,
+        userImageAttachment,
     }: {
         mode: ChatMode;
         question: string;
@@ -120,6 +122,8 @@ export function useWorkflowWorker(onMessage?: (data: any) => void, onAbort?: () 
         messages: (CoreUserMessage | CoreAssistantMessage)[];
         config?: WorkflowConfig;
         apiKeys?: Record<string, string>;
+        threadArtifact?: ThreadArtifact | null;
+        userImageAttachment?: string;
     }) => {
         // Reset state
         setError(null);
@@ -158,6 +162,8 @@ export function useWorkflowWorker(onMessage?: (data: any) => void, onAbort?: () 
                     messages,
                     config,
                     apiKeys: apiKeys || {},
+                    threadArtifact: threadArtifact ?? null,
+                    userImageAttachment: userImageAttachment ?? null,
                 },
             });
 

@@ -77,6 +77,9 @@ export function detailFromToolArgs(toolName: string, args: unknown): string | un
         if (typeof code === 'string' && code.trim()) return truncateLine(code);
     }
 
+    if (typeof record.prompt === 'string' && record.prompt.trim()) {
+        return truncateLine(record.prompt);
+    }
     if (typeof record.query === 'string' && record.query.trim()) return record.query.trim();
     if (typeof record.url === 'string' && record.url.trim()) return record.url.trim();
 
@@ -125,6 +128,18 @@ export function detailFromToolResult(toolName: string, result: unknown): string 
     if (isCodeToolName(toolName)) {
         const status = String(record.status ?? '');
         if (status === 'completed' || status === 'done') return 'Finished';
+    }
+
+    const items = record.items;
+    if (Array.isArray(items) && items.length > 0) {
+        const first = items[0];
+        if (first && typeof first === 'object' && 'url' in first) {
+            return 'Media ready';
+        }
+    }
+
+    if (typeof record.error === 'string' && record.error.trim()) {
+        return truncateLine(record.error, 120);
     }
 
     return undefined;

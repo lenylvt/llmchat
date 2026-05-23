@@ -1,7 +1,11 @@
 import { useWorkflowWorker } from '@repo/ai/worker';
 import { ChatMode, ChatModeConfig } from '@repo/shared/config';
-import { ThreadItem } from '@repo/shared/types';
-import { buildCoreMessagesFromThreadItems } from '@repo/shared/utils';
+import { ThreadArtifact, ThreadItem } from '@repo/shared/types';
+import {
+    artifactsEqual,
+    buildCoreMessagesFromThreadItems,
+    isThreadArtifact,
+} from '@repo/shared/utils';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { nanoid } from 'nanoid';
 import { createContext, ReactNode, useCallback, useContext, useMemo } from 'react';
@@ -52,6 +56,8 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
         updateThread,
         chatMode,
         customInstructions,
+        getThreadArtifact,
+        setThreadArtifact,
     } = useChatStore(state => ({
         updateThreadItem: state.updateThreadItem,
         setIsGenerating: state.setIsGenerating,
@@ -61,6 +67,8 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
         updateThread: state.updateThread,
         chatMode: state.chatMode,
         customInstructions: state.customInstructions,
+        getThreadArtifact: state.getThreadArtifact,
+        setThreadArtifact: state.setThreadArtifact,
     }));
 
     const apiKeys = useApiKeysStore(state => state.getAllKeys);
@@ -94,6 +102,30 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                     ? { toolResults: eventData.toolResults as ThreadItem['toolResults'] }
                     : {};
 
+            const objectPayload = eventData.object as Record<string, unknown> | undefined;
+            if (eventType === 'object' && objectPayload && 'artifact' in objectPayload) {
+                const artifact = objectPayload.artifact;
+                if (isThreadArtifact(artifact) || artifact === null) {
+                    const current = useChatStore.getState().getThreadArtifact(threadId);
+                    if (!artifactsEqual(current, artifact)) {
+                        void setThreadArtifact(threadId, artifact);
+                    }
+                }
+            }
+
+            const mergeObject =
+                eventType === 'object' && objectPayload
+                    ? (() => {
+                          const { artifact: _artifact, ...rest } = objectPayload;
+                          return {
+                              object: {
+                                  ...prevItem.object,
+                                  ...rest,
+                              },
+                          };
+                      })()
+                    : {};
+
             const updatedItem: ThreadItem = {
                 ...prevItem,
                 query: (eventData?.query as string) || prevItem.query || '',
@@ -101,7 +133,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 threadId,
                 parentId: parentThreadItemId || prevItem.parentId,
                 id: threadItemId,
-                object: (eventData?.object as Record<string, unknown>) || prevItem.object,
+                ...mergeObject,
                 createdAt: prevItem.createdAt || new Date(),
                 updatedAt: new Date(),
                 ...replaceToolCalls,
@@ -131,7 +163,9 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                                       ? eventData.error
                                       : 'Generation failed'),
                           }
-                        : eventType === 'toolCalls' || eventType === 'toolResults'
+                        : eventType === 'toolCalls' ||
+                            eventType === 'toolResults' ||
+                            eventType === 'object'
                           ? {}
                           : { [eventType]: eventData[eventType] }),
             } as ThreadItem;
@@ -139,7 +173,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
             threadItemMap.set(threadItemId, updatedItem);
             updateThreadItem(threadId, updatedItem);
         },
-        [threadItemMap, updateThreadItem]
+        [setThreadArtifact, threadItemMap, updateThreadItem]
     );
 
     const { startWorkflow, abortWorkflow } = useWorkflowWorker(
@@ -333,7 +367,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
 
             const optimisticAiThreadItemId = existingThreadItemId || nanoid();
             const query = formData.get('query') as string;
-            const imageAttachment = formData.get('imageAttachment') as string;
+            const imageAttachment = (formData.get('imageAttachment') as string) || undefined;
             const fileAttachmentsRaw = formData.get('fileAttachments') as string | null;
             const fileAttachments = fileAttachmentsRaw
                 ? (JSON.parse(fileAttachmentsRaw) as ThreadItem['fileAttachments'])
@@ -355,11 +389,14 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
             setIsGenerating(true);
             setCurrentSources([]);
 
+            const threadArtifact = getThreadArtifact(threadId);
+
             const coreMessages = buildCoreMessagesFromThreadItems({
                 messages: messages || [],
                 query,
                 imageAttachment: imageAttachment || undefined,
                 fileAttachments,
+                artifact: threadArtifact,
             });
 
             const webSearch = ChatModeConfig[mode]?.webSearch ?? true;
@@ -386,6 +423,8 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                     threadItemId: optimisticAiThreadItemId,
                     parentThreadItemId: '',
                     customInstructions,
+                    threadArtifact,
+                    userImageAttachment: imageAttachment,
                     apiKeys: { XAI_API_KEY: apiKeys().XAI_API_KEY },
                 });
             } else {
@@ -397,6 +436,8 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                     threadItemId: optimisticAiThreadItemId,
                     customInstructions,
                     parentThreadItemId: '',
+                    threadArtifact,
+                    userImageAttachment: imageAttachment,
                     webSearch,
                     showSuggestions: showSuggestions ?? true,
                 });
@@ -419,6 +460,7 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
             updateThreadItem,
             runAgent,
             setAbortController,
+            getThreadArtifact,
         ]
     );
 

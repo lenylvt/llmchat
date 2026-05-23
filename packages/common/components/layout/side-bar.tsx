@@ -168,7 +168,7 @@ export const Sidebar = () => {
 
                 <div
                     className={cn(
-                        'border-border/70 mt-3 w-full flex-1 overflow-y-auto border-t border-dashed px-3 py-5',
+                        'border-border/70 no-scrollbar mt-3 w-full flex-1 overflow-y-auto border-t border-dashed px-3 py-5',
                         isSidebarOpen ? 'flex flex-col gap-5' : 'hidden'
                     )}
                 >

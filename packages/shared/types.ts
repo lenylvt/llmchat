@@ -8,12 +8,31 @@ export type Project = {
     description: string;
 };
 
+import type { ThreadArtifact } from './types/artifact';
+import type { ThreadItemObject } from './types/thread-item-object';
+
+export type { ThreadArtifact } from './types/artifact';
+export { ARTIFACT_TOOL_NAME } from './types/artifact';
+export type {
+    ImagineMediaItem,
+    ImagineToolResult,
+    ThreadImagineMedia,
+    ImageCreatorAction,
+    VideoCreatorMode,
+} from './types/imagine';
+export {
+    IMAGE_CREATOR_TOOL_NAME,
+    VIDEO_CREATOR_TOOL_NAME,
+} from './types/imagine';
+export type { ThreadItemObject, ClarifyingQuestion } from './types/thread-item-object';
+
 export type Thread = {
     id: string;
     title: string;
     createdAt: Date;
     updatedAt: Date;
     projectId?: string;
+    artifact?: ThreadArtifact | null;
 };
 
 export type SubStep = {
@@ -84,7 +103,7 @@ export type ThreadItem = {
     suggestions?: string[];
     persistToDB?: boolean;
     sources?: Source[];
-    object?: Record<string, any>;
+    object?: ThreadItemObject;
     imageAttachment?: string;
     fileAttachments?: ThreadFileAttachment[];
 };

@@ -16,6 +16,9 @@ const FUNCTION_DISPLAY: Record<string, string> = {
     view_image: 'View image',
     view_x_video: 'View X video',
     mcp: 'MCP tool',
+    artifact: 'Document',
+    image_creator: 'Image creator',
+    video_creator: 'Video creator',
 };
 
 const CODE_FUNCTION_NAMES = new Set(['code_execution', 'code_interpreter']);

@@ -9,7 +9,11 @@ import {
 } from '@repo/common/components';
 import { useChatStore } from '@repo/common/store';
 import { ChatMode } from '@repo/shared/config';
-import { Source, ThreadItem as ThreadItemType } from '@repo/shared/types';
+import {
+    Source,
+    ThreadItem as ThreadItemType,
+    type ThreadImagineMedia,
+} from '@repo/shared/types';
 import {
     mergeSourcesByIndex,
     prepareAnswerContent,
@@ -22,6 +26,7 @@ import { memo, useEffect, useMemo, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { collectSourcesFromThreadItem } from './collect-sources';
 import { CitationFooter } from './components/citation-footer';
+import { ImagineMediaGallery } from './components/imagine-media-gallery';
 import { StreamingAnswer } from './components/streaming-answer';
 
 function buildPreparedAnswer(
@@ -59,6 +64,7 @@ function threadItemRenderKey(item: ThreadItemType) {
         item.status,
         item.answer?.text,
         item.sources?.length,
+        (item.object?.imagineMedia as ThreadImagineMedia | undefined)?.items?.length ?? 0,
         item.error,
         item.updatedAt?.toString?.(),
     ].join(':');
@@ -198,6 +204,11 @@ export const ThreadItem = memo(
                             hasActivitySteps && hasAnswer && '-mt-1'
                         )}
                     >
+                        {((threadItem.object?.imagineMedia as ThreadImagineMedia | undefined)
+                            ?.items?.length ?? 0) > 0 && (
+                            <ImagineMediaGallery object={threadItem.object} />
+                        )}
+
                         {hasAnswer && (
                             <div className="flex min-w-0 w-full max-w-full flex-col gap-1">
                                 <StreamingAnswer prepared={prepared} />

@@ -7,13 +7,14 @@ export const SETTING_TABS = {
     PERSONALIZATION: 'personalization',
 } as const;
 
-export type SideDrawerId = 'research' | 'sources' | (string & {});
+export type SideDrawerId = 'research' | 'sources' | 'artifact' | (string & {});
 
 type SideDrawerProps = {
     open: boolean;
     id?: SideDrawerId;
     badge?: number;
     title: string | (() => React.ReactNode);
+    headerActions?: () => React.ReactNode;
     renderContent: () => React.ReactNode;
 };
 

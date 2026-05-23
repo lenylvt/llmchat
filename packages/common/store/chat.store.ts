@@ -1,7 +1,12 @@
 'use client';
 
 import { ChatMode, normalizeChatMode } from '@repo/shared/config';
-import { Thread, ThreadFileAttachment, ThreadItem } from '@repo/shared/types';
+import { Thread, ThreadArtifact, ThreadFileAttachment, ThreadItem } from '@repo/shared/types';
+import {
+    artifactsEqual,
+    sanitizeThreadItemForPersist,
+    truncateArtifactForPersist,
+} from '@repo/shared/utils';
 import { nanoid } from 'nanoid';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
@@ -32,6 +37,9 @@ const loadConfig = () => {
         return defaultConfig;
     }
 };
+
+const ARTIFACT_PERSIST_DEBOUNCE_MS = 450;
+const artifactPersistTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 const saveConfig = (partial: Record<string, unknown>) => {
     if (typeof window === 'undefined') return;
@@ -93,6 +101,8 @@ type Actions = {
     setUseWebSearch: (useWebSearch: boolean) => void;
     setShowSuggestions: (showSuggestions: boolean) => void;
     loadThreads: () => Promise<void>;
+    getThreadArtifact: (threadId?: string) => ThreadArtifact | null;
+    setThreadArtifact: (threadId: string, artifact: ThreadArtifact | null) => Promise<void>;
 };
 
 const persistItemQueue = new Map<string, ThreadItem>();
@@ -108,9 +118,9 @@ const flushPersistQueue = async () => {
     persistItemQueue.clear();
     for (const item of items) {
         try {
-            await api.upsertThreadItem(item);
+            await api.upsertThreadItem(sanitizeThreadItemForPersist(item));
         } catch (e) {
-            console.error('Failed to persist thread item', e);
+            console.error('Failed to persist thread item', e, { itemId: item.id });
         }
     }
 };
@@ -519,6 +529,53 @@ export const useChatStore = create(
                     .threadItems.filter(i => i.threadId === id)
                     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
                 return items[items.length - 1] || null;
+            },
+
+            getThreadArtifact: threadId => {
+                const id = threadId || get().currentThreadId;
+                if (!id) return null;
+                return get().threads.find(t => t.id === id)?.artifact ?? null;
+            },
+
+            setThreadArtifact: async (threadId, artifact) => {
+                const existing = get().threads.find(t => t.id === threadId);
+                if (!existing) return;
+
+                const normalized = truncateArtifactForPersist(artifact);
+                if (artifactsEqual(existing.artifact, normalized)) return;
+
+                const updated: Thread = {
+                    ...existing,
+                    artifact: normalized,
+                    updatedAt: new Date(),
+                };
+
+                set(s => {
+                    const idx = s.threads.findIndex(t => t.id === threadId);
+                    if (idx >= 0) s.threads[idx] = updated;
+                });
+
+                if (!hasThreadPersistence()) return;
+
+                const prior = artifactPersistTimers.get(threadId);
+                if (prior) clearTimeout(prior);
+
+                artifactPersistTimers.set(
+                    threadId,
+                    setTimeout(() => {
+                        artifactPersistTimers.delete(threadId);
+                        void (async () => {
+                            try {
+                                await getThreadPersistence().updateThreadArtifact({
+                                    threadId,
+                                    artifact: normalized,
+                                });
+                            } catch (e) {
+                                console.error('updateThreadArtifact failed', e);
+                            }
+                        })();
+                    }, ARTIFACT_PERSIST_DEBOUNCE_MS)
+                );
             },
         };
     })

@@ -88,6 +88,8 @@ cd apps/web && wrangler dev
 - BetterAuth: `tanstackStartCookies()` must be last plugin.
 - Deep multi-agent: do not send `max_tokens` to `grok-4.20-multi-agent`.
 - Tool activity UI: `AgentActivityCard` + side drawer `id: 'research'`; labels in `@repo/shared/utils` (`displayNameForServerTool`).
+- Imagine: client tools `image_creator` / `video_creator` → `packages/ai/xai-imagine.ts`; gallery on `threadItem.object.imagineMedia`. Full matrix: `docs/IMAGINE_CAPABILITIES.md`.
+- Thread document: client `artifact` function tool → `ActivityController` updates `threads.artifact` (D1 canonical); SSE `object` may include `artifact` for UI refresh only (not persisted on `thread_items.object`). UI `ArtifactCard` + drawer `id: 'artifact'` (Tiptap light editor).
 - xAI activity: canonical `response.output_item.*` events; optional `tool_calls` chunks only when `id` / `call_id` is present (no synthetic tool ids).
 
 ## Files (xAI)
@@ -95,4 +97,5 @@ cd apps/web && wrangler dev
 - Documents: upload via `POST /api/files` → attach with `file_id` in chat (`attachment_search` is automatic on xAI).
 - Images in chat: still use base64 `imageAttachment` (unchanged UI).
 - Max **48 MB** per file (xAI limit). Auto-delete: **7 days** (`expires_after`) and when thread/thread-item is deleted.
-- Run migration: `cd apps/web && bun run db:migrate:local` (adds `thread_files` + `file_attachments` column).
+- Run migration: `cd apps/web && bun run db:migrate:local` (adds `thread_files`, `file_attachments`, `threads.artifact`, `thread_items.object`).
+- Imagine media persists on `thread_items.object` (prompt + URL). Large chat `imageAttachment` is stripped on save so messages still persist.

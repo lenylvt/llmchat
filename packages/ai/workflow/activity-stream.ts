@@ -1,25 +1,9 @@
+import { parseToolCallArguments } from '@repo/shared/utils';
 import { isClientToolOutputType, isServerToolOutputType } from '../xai-server-tools';
 import type { ActivityController } from './activity';
 
 function asRecord(value: unknown): Record<string, unknown> | null {
     return value && typeof value === 'object' ? (value as Record<string, unknown>) : null;
-}
-
-function parseToolCallArgs(raw: unknown): Record<string, unknown> {
-    if (typeof raw === 'string' && raw.trim()) {
-        try {
-            const parsed = JSON.parse(raw) as unknown;
-            if (parsed && typeof parsed === 'object') {
-                return parsed as Record<string, unknown>;
-            }
-        } catch {
-            return { partial: raw };
-        }
-    }
-    if (raw && typeof raw === 'object') {
-        return raw as Record<string, unknown>;
-    }
-    return {};
 }
 
 /** Stable xAI tool id from chunk rows — skip when missing (no synthetic ids). */
@@ -55,17 +39,25 @@ function ingestChunkToolCalls(event: Record<string, unknown>, activity: Activity
             '';
         if (!toolName) continue;
 
-        const args = parseToolCallArgs(tc.arguments ?? fn?.arguments ?? tc.input ?? tc.args);
+        const { args } = parseToolCallArguments(tc.arguments ?? fn?.arguments ?? tc.input ?? tc.args);
         activity.recordStreamingToolCall(toolCallId, toolName, args);
     }
 }
 
-function ingestServerToolItem(item: Record<string, unknown>, activity: ActivityController): void {
+function ingestServerToolItem(
+    item: Record<string, unknown>,
+    activity: ActivityController,
+    eventType: string
+): void {
     const itemType = String(item.type ?? '');
     if (!itemType) return;
 
     if (isClientToolOutputType(itemType)) {
-        activity.recordClientToolItem(item);
+        const forceComplete = eventType === 'response.output_item.done';
+        if (eventType === 'response.output_item.added') {
+            activity.registerFunctionCallItem(item);
+        }
+        activity.recordClientToolItem(item, { forceComplete });
         return;
     }
 
@@ -82,7 +74,7 @@ function ingestServerToolItem(item: Record<string, unknown>, activity: ActivityC
 }
 
 /**
- * Ingest xAI Responses SSE — `output_item.*` events (canonical) plus optional `tool_calls`
+ * Ingest xAI Responses SSE — `output_item.*`, `function_call_arguments.*`, and optional `tool_calls`
  * chunks when they carry a stable `id` / `call_id`.
  * @see https://docs.x.ai/developers/tools/streaming
  */
@@ -92,24 +84,48 @@ export function ingestXaiActivityEvent(
 ): void {
     const type = String(event.type ?? '');
 
+    if (type === 'response.function_call_arguments.delta') {
+        const itemId = String(event.item_id ?? '');
+        const delta = String(event.delta ?? '');
+        if (itemId && delta) {
+            activity.appendFunctionCallArguments(itemId, delta);
+        }
+        return;
+    }
+
+    if (type === 'response.function_call_arguments.done') {
+        const itemId = String(event.item_id ?? '');
+        const args = String(event.arguments ?? '');
+        if (itemId && args) {
+            activity.completeFunctionCallArguments(itemId, args);
+        }
+        return;
+    }
+
     if (
         type === 'response.output_item.added' ||
         type === 'response.output_item.done' ||
         type === 'response.output_item.in_progress'
     ) {
         const item = asRecord(event.item);
-        if (item) ingestServerToolItem(item, activity);
+        if (item) ingestServerToolItem(item, activity, type);
         return;
     }
 
-    if (type === 'response.completed') {
+    if (type === 'response.completed' || type === 'response.done') {
         const response = asRecord(event.response);
         const output = response?.output;
         if (!Array.isArray(output)) return;
 
         for (const entry of output) {
             const item = asRecord(entry);
-            if (item) ingestServerToolItem(item, activity);
+            if (!item) continue;
+            const itemType = String(item.type ?? '');
+            if (isClientToolOutputType(itemType)) {
+                activity.recordClientToolItem(item, { forceComplete: true });
+            } else {
+                ingestServerToolItem(item, activity, 'response.output_item.done');
+            }
         }
         return;
     }

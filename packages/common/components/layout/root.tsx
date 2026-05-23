@@ -1,5 +1,6 @@
 'use client';
 import { CommandSearch, IntroDialog, SettingsModal, Sidebar } from '@repo/common/components';
+import { ArtifactCornerAnchor } from './artifact-corner-anchor';
 import { useRootContext } from '@repo/common/context';
 import { AgentProvider, useAppHotkeys } from '@repo/common/hooks';
 import { useAppStore } from '@repo/common/store';
@@ -93,10 +94,10 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
                     <AgentProvider>
                         <div className={containerClass}>
                             <div className="relative flex h-full w-0 flex-1 flex-row">
-                                <div className="flex w-full flex-col gap-2 overflow-y-auto">
-                                    <div className="from-secondary to-secondary/0 via-secondary/70 pointer-events-none absolute left-0 right-0 top-0 z-40 flex flex-row items-center justify-center gap-1 bg-gradient-to-b p-2 pb-12" />
-                                    {/* Auth Button Header */}
-
+                                <div className="relative flex w-full flex-col gap-2 overflow-y-auto">
+                                    <div className="from-secondary to-secondary/0 via-secondary/70 pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-end bg-gradient-to-b p-2 pb-12">
+                                        <ArtifactCornerAnchor />
+                                    </div>
                                     {children}
                                 </div>
                             </div>
@@ -140,16 +141,16 @@ export const SideDrawer = () => {
                     className="flex min-h-[99dvh] w-[500px] shrink-0 flex-col overflow-hidden py-1.5 pl-0.5 pr-1.5"
                 >
                     <div className="bg-background border-border shadow-subtle-xs flex h-full w-full flex-col overflow-hidden rounded-lg">
-                        <div className="border-border flex flex-row items-center justify-between gap-2 border-b py-1.5 pl-4 pr-2">
-                            <div className="text-sm font-medium">
+                        <div className="border-border flex flex-row items-center gap-2 border-b py-1.5 pl-4 pr-2">
+                            <div className="min-w-0 flex-1 text-sm font-medium">
                                 {typeof sideDrawer.title === 'function'
                                     ? sideDrawer.title()
                                     : sideDrawer.title}
                             </div>
-                            {sideDrawer.badge && (
+                            {sideDrawer.badge ? (
                                 <Badge variant="default">{sideDrawer.badge}</Badge>
-                            )}
-                            <div className="flex-1" />
+                            ) : null}
+                            {sideDrawer.headerActions?.()}
                             <Button
                                 variant="secondary"
                                 size="icon-xs"
@@ -160,10 +161,21 @@ export const SideDrawer = () => {
                             </Button>
                         </div>
                         <div
-                            className="no-scrollbar flex flex-1 flex-col gap-2 overflow-y-auto p-2"
+                            className={
+                                sideDrawer.id === 'artifact'
+                                    ? 'no-scrollbar flex min-h-0 flex-1 flex-col overflow-hidden'
+                                    : 'no-scrollbar flex flex-1 flex-col gap-2 overflow-y-auto p-2'
+                            }
                             ref={scrollRef}
                         >
-                            <div ref={contentRef} className="w-full">
+                            <div
+                                ref={contentRef}
+                                className={
+                                    sideDrawer.id === 'artifact'
+                                        ? 'flex h-full min-h-0 w-full flex-1 flex-col'
+                                        : 'w-full'
+                                }
+                            >
                                 {sideDrawer.renderContent()}
                             </div>
                         </div>

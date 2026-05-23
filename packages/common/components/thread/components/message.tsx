@@ -40,6 +40,11 @@ export const Message = memo(({ message, imageAttachment, fileAttachments, thread
     return (
         <div className="flex w-full flex-col items-end gap-2 self-end pt-4">
             <MessageFileAttachments files={fileAttachments} imageAttachment={imageAttachment} />
+            {threadItem.metadata?.imageAttachmentOmitted && !imageAttachment && (
+                <p className="text-muted-foreground max-w-[80%] text-right text-xs">
+                    Attached image not saved (file too large for storage)
+                </p>
+            )}
             {(message || isEditing) && (
             <div
                 className={cn(

@@ -14,7 +14,7 @@ import { ingestXaiActivityEvent } from './workflow/activity-stream';
 
 export type GrokStreamResult = { text: string; sources: Source[] };
 
-const SOURCE_EVENT_TYPES = new Set(['response.completed']);
+const SOURCE_EVENT_TYPES = new Set(['response.completed', 'response.done']);
 
 export function grokMessagesNeedFileStream(messages: CoreMessage[]): boolean {
     return messagesHaveXaiFileIds(messages);

@@ -214,6 +214,77 @@ mark.prompt-highlight {
     border-radius: 4px;
 }
 
+.artifact-editor-root {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+}
+
+.artifact-editor-root .ProseMirror {
+    flex: 1 1 auto;
+    min-height: 100%;
+    height: 100%;
+    padding: 0.75rem 1rem;
+    overflow-y: auto;
+    outline: none;
+}
+
+.artifact-editor-root .ProseMirror > * + * {
+    margin-top: 0.5em;
+}
+
+.artifact-editor-root .ProseMirror h1,
+.artifact-editor-root .ProseMirror h2,
+.artifact-editor-root .ProseMirror h3 {
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.artifact-editor-root .ProseMirror h1 {
+    font-size: 1.25rem;
+}
+
+.artifact-editor-root .ProseMirror h2 {
+    font-size: 1.125rem;
+}
+
+.artifact-editor-root .ProseMirror h3 {
+    font-size: 1rem;
+}
+
+.artifact-editor-root .ProseMirror ul,
+.artifact-editor-root .ProseMirror ol {
+    padding-left: 1.25rem;
+}
+
+.artifact-editor-root .ProseMirror code {
+    font-size: 0.875em;
+    border-radius: 0.25rem;
+    background: hsl(var(--muted));
+    padding: 0.1em 0.35em;
+}
+
+.artifact-editor-root .ProseMirror pre {
+    border-radius: 0.375rem;
+    background: hsl(var(--muted));
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+}
+
+.artifact-editor-root .ProseMirror pre code {
+    background: transparent;
+    padding: 0;
+}
+
+.artifact-editor-root .ProseMirror .is-editor-empty:first-child::before {
+    color: hsl(var(--muted-foreground) / 0.5);
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+}
+
 .tiptap .is-editor-empty:first-child::before {
     color: hsl(var(--muted-foreground) / 0.5);
     content: attr(data-placeholder);

@@ -1,10 +1,14 @@
-import type { Thread, ThreadItem } from '@repo/shared/types';
+import type { Thread, ThreadArtifact, ThreadItem } from '@repo/shared/types';
 
 export type ThreadPersistenceApi = {
     getThreads: () => Promise<Thread[]>;
     getThread: (threadId: string) => Promise<Thread | null>;
     createThread: (input: { id: string; title?: string }) => Promise<Thread>;
     updateThread: (input: { id: string; title: string }) => Promise<void>;
+    updateThreadArtifact: (input: {
+        threadId: string;
+        artifact: ThreadArtifact | null;
+    }) => Promise<void>;
     deleteThread: (threadId: string) => Promise<void>;
     getThreadItems: (threadId: string) => Promise<ThreadItem[]>;
     upsertThreadItem: (item: ThreadItem) => Promise<void>;

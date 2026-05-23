@@ -56,6 +56,7 @@ export const threads = sqliteTable('threads', {
     id: text('id').primaryKey(),
     userId: text('user_id').notNull(),
     title: text('title').notNull().default('New Chat'),
+    artifact: text('artifact'),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
     updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });
@@ -79,6 +80,7 @@ export const threadItems = sqliteTable('thread_items', {
     suggestions: text('suggestions'),
     imageAttachment: text('image_attachment'),
     fileAttachments: text('file_attachments'),
+    object: text('object'),
     createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
     updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull(),
 });

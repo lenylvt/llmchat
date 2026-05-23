@@ -5,7 +5,7 @@ import {
     WorkflowConfig,
 } from '@repo/orchestrator';
 import { ChatMode } from '@repo/shared/config';
-import type { ToolCall, ToolResult } from '@repo/shared/types';
+import type { ThreadArtifact, ToolCall, ToolResult } from '@repo/shared/types';
 import { CoreMessage } from 'ai';
 import { completionTask, deepCompletionTask, modeRoutingTask } from './tasks';
 
@@ -51,6 +51,8 @@ export type WorkflowContextSchema = {
     threadItemId: string;
     showSuggestions: boolean;
     customInstructions?: string;
+    threadArtifact?: ThreadArtifact | null;
+    userImageAttachment?: string | null;
     onFinish: (data: unknown) => void;
 };
 
@@ -66,6 +68,8 @@ export const runWorkflow = ({
     showSuggestions = false,
     onFinish,
     customInstructions,
+    threadArtifact,
+    userImageAttachment,
 }: {
     mode: ChatMode;
     question: string;
@@ -78,10 +82,13 @@ export const runWorkflow = ({
     showSuggestions?: boolean;
     onFinish?: (data: unknown) => void;
     customInstructions?: string;
+    threadArtifact?: ThreadArtifact | null;
+    userImageAttachment?: string | null;
 }) => {
     const workflowConfig: WorkflowConfig = {
         maxIterations: 2,
-        timeoutMs: 480000,
+        /** Grok stream + Imagine video poll (up to 10 min) + margin */
+        timeoutMs: 660_000,
         ...config,
     };
 
@@ -111,6 +118,8 @@ export const runWorkflow = ({
         threadItemId,
         showSuggestions,
         customInstructions,
+        threadArtifact: threadArtifact ?? null,
+        userImageAttachment: userImageAttachment ?? null,
         onFinish: onFinish as (data: unknown) => void,
     });
 

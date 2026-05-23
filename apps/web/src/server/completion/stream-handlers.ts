@@ -53,10 +53,12 @@ export async function executeStream({
             threadItemId: data.threadItemId,
             messages: data.messages,
             customInstructions: data.customInstructions,
+            threadArtifact: data.threadArtifact ?? null,
+            userImageAttachment: data.userImageAttachment ?? null,
             webSearch: data.webSearch || false,
+            signal,
             config: {
                 maxIterations: data.maxIterations || 3,
-                signal,
             },
             showSuggestions: data.showSuggestions || false,
         });

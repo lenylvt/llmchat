@@ -1,5 +1,16 @@
 import { ChatMode } from '@repo/shared/config';
+import {
+    MAX_PERSIST_ARTIFACT_CHARS,
+    MAX_PERSIST_IMAGE_ATTACHMENT_CHARS,
+} from '@repo/shared/utils';
 import { z } from 'zod';
+
+const threadArtifactSchema = z.object({
+    title: z.string().max(500),
+    content: z.string().max(MAX_PERSIST_ARTIFACT_CHARS),
+    updatedAt: z.string(),
+    updatedBy: z.enum(['assistant', 'user']),
+});
 
 export const completionRequestSchema = z.object({
     threadId: z.string(),
@@ -19,6 +30,8 @@ export const completionRequestSchema = z.object({
     webSearch: z.boolean().optional(),
     showSuggestions: z.boolean().optional(),
     customInstructions: z.string().optional(),
+    threadArtifact: threadArtifactSchema.nullable().optional(),
+    userImageAttachment: z.string().max(MAX_PERSIST_IMAGE_ATTACHMENT_CHARS).optional(),
 });
 
 export type CompletionRequestType = z.infer<typeof completionRequestSchema>;

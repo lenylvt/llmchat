@@ -1,4 +1,9 @@
-import { ThreadFileAttachment, ThreadItem } from '@repo/shared/types';
+import { ThreadArtifact, ThreadFileAttachment, ThreadItem } from '@repo/shared/types';
+import { formatArtifactContextBlock } from './artifact';
+import {
+    collectImagineMediaFromThreadItems,
+    formatImagineContextBlock,
+} from './imagine';
 
 type UserContentPart =
     | { type: 'text'; text: string }
@@ -52,12 +57,20 @@ export const buildCoreMessagesFromThreadItems = ({
     query,
     imageAttachment,
     fileAttachments,
+    artifact,
 }: {
     messages: ThreadItem[];
     query: string;
     imageAttachment?: string;
     fileAttachments?: ThreadFileAttachment[];
+    artifact?: ThreadArtifact | null;
 }): CoreMessage[] => {
+    const artifactPrefix = formatArtifactContextBlock(artifact);
+    const imaginePrefix = formatImagineContextBlock(
+        collectImagineMediaFromThreadItems(messages ?? [])
+    );
+    const userQuery = `${artifactPrefix}${imaginePrefix}${query}`;
+
     return [
         ...(messages || []).flatMap(item => [
             {
@@ -75,7 +88,7 @@ export const buildCoreMessagesFromThreadItems = ({
         ]),
         {
             role: 'user' as const,
-            content: buildUserContent(query, imageAttachment, fileAttachments),
+            content: buildUserContent(userQuery, imageAttachment, fileAttachments),
         },
     ];
 };

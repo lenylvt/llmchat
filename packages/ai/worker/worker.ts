@@ -38,6 +38,8 @@ ctx.addEventListener('message', async (event: MessageEvent) => {
                 messages,
                 config,
                 apiKeys: newApiKeys,
+                threadArtifact,
+                userImageAttachment,
             } = payload;
 
             // Set API keys if provided
@@ -54,6 +56,8 @@ ctx.addEventListener('message', async (event: MessageEvent) => {
                 threadItemId,
                 messages,
                 config,
+                threadArtifact: threadArtifact ?? null,
+                userImageAttachment: userImageAttachment ?? null,
                 onFinish: () => {},
             });
 

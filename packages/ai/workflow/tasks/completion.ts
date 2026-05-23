@@ -6,8 +6,11 @@ import { ActivityController } from '../activity';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
 import { ChunkBuffer, handleError } from '../utils';
 
+const COMPLETION_TASK_TIMEOUT_MS = 660_000;
+
 export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSchema>({
     name: 'completion',
+    timeoutMs: COMPLETION_TASK_TIMEOUT_MS,
     execute: async ({ events, context, signal }) => {
         if (!context) throw new Error('Context required');
 
@@ -19,8 +22,13 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
                 .get('messages')
                 ?.filter(m => (m.role === 'user' || m.role === 'assistant') && !!m.content) || [];
 
-        const system = buildStandardSystemPrompt(customInstructions);
-        const activity = new ActivityController(events!);
+        const threadArtifact = context.get('threadArtifact') ?? null;
+        const system = buildStandardSystemPrompt(customInstructions, threadArtifact);
+        const activity = new ActivityController(events!, {
+            initialArtifact: threadArtifact,
+            userImageAttachment: context.get('userImageAttachment') ?? null,
+            abortSignal: signal,
+        });
         activity.begin();
 
         const chunkBuffer = new ChunkBuffer({
@@ -34,36 +42,46 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
             },
         });
 
-        const { text: fullText, sources } = await runGrokCompletion({
-            mode,
-            messages,
-            system,
-            signal,
-            activity,
-            onDelta: delta => chunkBuffer.add(delta),
-        });
-        chunkBuffer.end();
+        let fullText = '';
+        let sources: Awaited<ReturnType<typeof runGrokCompletion>>['sources'] = [];
 
-        activity.complete();
+        try {
+            const result = await runGrokCompletion({
+                mode,
+                messages,
+                system,
+                signal,
+                activity,
+                onDelta: delta => chunkBuffer.add(delta),
+            });
+            fullText = result.text;
+            sources = result.sources;
+            chunkBuffer.end();
 
-        if (sources.length > 0) {
-            events?.update('sources', () => sources);
+            activity.finalizeArtifactFallback(fullText, context.get('question') ?? '');
+            activity.complete();
+
+            if (sources.length > 0) {
+                events?.update('sources', () => sources);
+            }
+
+            events?.update('answer', () => ({
+                text: fullText,
+                finalText: fullText,
+                status: 'COMPLETED',
+            }));
+            context.update('answer', () => fullText);
+            events?.update('status', () => 'COMPLETED');
+
+            const onFinish = context.get('onFinish');
+            onFinish?.({
+                answer: fullText,
+                threadId: context.get('threadId'),
+                threadItemId: context.get('threadItemId'),
+            });
+        } finally {
+            await activity.drainImagineTasks();
         }
-
-        events?.update('answer', () => ({
-            text: fullText,
-            finalText: fullText,
-            status: 'COMPLETED',
-        }));
-        context.update('answer', () => fullText);
-        events?.update('status', () => 'COMPLETED');
-
-        const onFinish = context.get('onFinish');
-        onFinish?.({
-            answer: fullText,
-            threadId: context.get('threadId'),
-            threadItemId: context.get('threadItemId'),
-        });
     },
     onError: handleError,
 });

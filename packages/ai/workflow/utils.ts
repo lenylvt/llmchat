@@ -60,6 +60,12 @@ export const handleError = (error: Error, { context, events }: TaskParams) => {
         error: errorMessage,
         status: 'ERROR',
     }));
+    events?.update('answer', prev => ({
+        ...prev,
+        text: prev?.text ?? '',
+        status: 'ERROR',
+    }));
+    events?.update('status', () => 'ERROR');
 
     return Promise.resolve({
         retry: false,

@@ -1,4 +1,7 @@
 import type { CoreMessage } from 'ai';
+import { ARTIFACT_FUNCTION_TOOL } from './artifact-tool';
+import { IMAGE_CREATOR_FUNCTION_TOOL } from './image-creator-tool';
+import { VIDEO_CREATOR_FUNCTION_TOOL } from './video-creator-tool';
 
 type XaiInputPart =
     | { type: 'input_text'; text: string }
@@ -114,4 +117,7 @@ export const XAI_RESPONSES_TOOLS = [
         enable_video_understanding: true,
     },
     { type: 'code_interpreter' as const },
+    ARTIFACT_FUNCTION_TOOL,
+    IMAGE_CREATOR_FUNCTION_TOOL,
+    VIDEO_CREATOR_FUNCTION_TOOL,
 ];
