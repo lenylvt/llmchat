@@ -1,9 +1,9 @@
 import { CitationProviderContext, CodeBlock, LinkPreviewPopover } from '@repo/common/components';
 import { isValidUrl } from '@repo/shared/utils';
-import { MDXRemote } from 'next-mdx-remote/rsc';
 import { ComponentProps, ReactElement, useContext } from 'react';
+import type { Components } from 'react-markdown';
 
-export const mdxComponents: ComponentProps<typeof MDXRemote>['components'] = {
+export const mdxComponents: Components = {
     Source: ({ children }) => {
         const { getSourceByIndex } = useContext(CitationProviderContext);
         const index = children as string;

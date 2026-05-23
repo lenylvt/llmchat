@@ -13,7 +13,7 @@ We collect two types of information:
 
    - When you register for an account or use our Service, you may provide us with personal information such as your name, email address, and other contact details.
    - Specifically, if you wish to use the freely available GPT-4o mini model API calls, you are required to log in via Google or GitHub. This usage is limited to 10 messages a day to ensure fair usage.
-   - All the data related to this is stored locally on your browser.
+   - Account data is stored server-side when you sign in.
 
 2. **Automatically Collected Information**:
    - When you access the Service, certain information may be collected automatically. This includes your IP address, browser type, device type, and other technical information.
@@ -21,25 +21,24 @@ We collect two types of information:
 
 ### How We Handle Your Data
 
-- **Local Storage**: All your data, including API keys, chat history, and messages, are stored locally on your browser using Local Storage and IndexedDB. We do not have a backend server to collect or store your data.
-- **Secure Requests**: When you send a message, your browser directly communicates with the API server using a secure HTTPS connection. There is no middle server, ensuring your data remains private.
-- **Proxy Requests**: For certain models, requests are forwarded through our proxy server without logging or storing any data. The proxy server simply passes your request to the model's server.
+- **Server storage**: When you are signed in, conversations are stored in Cloudflare D1 (edge SQLite) associated with your account.
+- **Secure requests**: Messages are sent over HTTPS to our Cloudflare Worker, which calls the xAI API. API keys configured in settings are used only from your browser (BYOK) or server-side secrets you control.
 - **No External JavaScript**: We do not run any external JavaScript on our site, ensuring high security and privacy.
 - **Data Deletion**: You can delete all your data, including API keys, configurations, and chat histories, at any time from your browser.
 - **Tracking and Cookies**: We may use tracking and error logging tools to improve our services. Cookies might be used to enhance user experience and functionality.
 
 ### Use of Third-Party Services
 
-Our Service may use third-party tools and services to assist in analytics, service optimization, or for technical support. These may include:
+Our Service relies on:
 
-- **PostHog**: Used for analytics to better understand user interactions with our Service.
-- **Sentry**: Used for error logging and monitoring to improve the stability and performance of our Service.
+- **Cloudflare** (Workers, D1, Email Routing) for hosting, database, and authentication emails.
+- **xAI** for AI inference and file storage (uploaded attachments are sent to xAI and auto-deleted per their retention policy).
 
-These third-party services have their own Privacy Policies, which we recommend you review.
+These providers have their own privacy policies.
 
 ### Cookies
 
-\`llmchat.co\` does not directly use cookies. However, some third-party services we utilize, such as PostHog and Sentry, may use cookies to monitor interactions with our Service. Additionally, cookies are used for authentication purposes. You have the option to either accept or decline these cookies and should refer to your browser settings for managing your preferences.
+Authentication uses session cookies managed by Better Auth. You can sign out to clear your session.
 
 ### Third-Party Links and Content
 

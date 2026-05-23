@@ -1,4 +1,5 @@
 import { ChatMode } from '@repo/shared/config';
+import { setXaiApiKey } from '../providers';
 import { runWorkflow } from '../workflow/flow';
 // Create context for the worker
 const ctx: Worker = self as any;
@@ -37,24 +38,12 @@ ctx.addEventListener('message', async (event: MessageEvent) => {
                 messages,
                 config,
                 apiKeys: newApiKeys,
-                mcpConfig,
             } = payload;
 
             // Set API keys if provided
             if (newApiKeys) {
                 apiKeys = newApiKeys;
-
-                self.AI_API_KEYS = {
-                    openai: apiKeys.OPENAI_API_KEY,
-                    anthropic: apiKeys.ANTHROPIC_API_KEY,
-                    fireworks: apiKeys.FIREWORKS_API_KEY,
-                    google: apiKeys.GEMINI_API_KEY,
-                    together: apiKeys.TOGETHER_API_KEY,
-                };
-
-                self.SERPER_API_KEY = apiKeys.SERPER_API_KEY;
-                self.JINA_API_KEY = apiKeys.JINA_API_KEY;
-                self.NEXT_PUBLIC_APP_URL = apiKeys.NEXT_PUBLIC_APP_URL;
+                setXaiApiKey(apiKeys.XAI_API_KEY);
             }
 
             // Initialize the workflow
@@ -65,8 +54,7 @@ ctx.addEventListener('message', async (event: MessageEvent) => {
                 threadItemId,
                 messages,
                 config,
-                mcpConfig,
-                onFinish: (data: any) => {},
+                onFinish: () => {},
             });
 
             // Forward workflow events to the main thread
@@ -83,7 +71,7 @@ ctx.addEventListener('message', async (event: MessageEvent) => {
             });
 
             // Start the workflow with the appropriate task
-            const startTask = mode === ChatMode.Deep ? 'router' : 'router';
+            const startTask = 'router';
             const result = await activeWorkflow.start(startTask, {
                 question,
             });

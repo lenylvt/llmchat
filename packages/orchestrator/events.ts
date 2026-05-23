@@ -1,5 +1,21 @@
 export type EventSchemaDefinition = Record<string, any>;
 
+/** Minimal browser/worker-compatible event emitter */
+export class EventEmitter {
+    private listeners = new Map<string, Set<(data: unknown) => void>>();
+
+    on(event: string, callback: (data: unknown) => void) {
+        if (!this.listeners.has(event)) {
+            this.listeners.set(event, new Set());
+        }
+        this.listeners.get(event)!.add(callback);
+    }
+
+    emit(event: string, data?: unknown) {
+        this.listeners.get(event)?.forEach(cb => cb(data));
+    }
+}
+
 export class TypedEventEmitter<T extends EventSchemaDefinition> {
     private listeners: Map<keyof T, Set<(data: any) => void>> = new Map();
     private state: { [K in keyof T]?: T[K] } = {};

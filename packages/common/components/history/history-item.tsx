@@ -11,27 +11,20 @@ import {
     Input,
 } from '@repo/ui';
 import { MoreHorizontal } from 'lucide-react';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 
 export const HistoryItem = ({
     thread,
     dismiss,
     isActive,
-    isPinned,
-    pinThread,
-    unpinThread,
 }: {
     thread: Thread;
-    dismiss: () => void;
+    dismiss?: () => void;
     isActive?: boolean;
-    isPinned?: boolean;
-    pinThread: (threadId: string) => void;
-    unpinThread: (threadId: string) => void;
 }) => {
-    const { push } = useRouter();
-    const { threadId: currentThreadId } = useParams();
+    const navigate = useNavigate();
+    const { threadId: currentThreadId } = useParams({ strict: false });
     const updateThread = useChatStore(state => state.updateThread);
     const [isEditing, setIsEditing] = useState(false);
     const [title, setTitle] = useState(thread.title);
@@ -83,7 +76,7 @@ export const HistoryItem = ({
     const handleDeleteConfirm = () => {
         deleteThread(thread.id);
         if (currentThreadId === thread.id) {
-            push('/chat');
+            navigate({ to: '/chat' });
         }
     };
 
@@ -101,7 +94,8 @@ export const HistoryItem = ({
                 />
             ) : (
                 <Link
-                    href={`/chat/${thread.id}`}
+                    to="/chat/$threadId"
+                    params={{ threadId: thread.id }}
                     className="flex flex-1 items-center"
                     onClick={() => switchThread(thread.id)}
                 >
@@ -152,15 +146,6 @@ export const HistoryItem = ({
                     >
                         Delete Chat
                     </DropdownMenuItem>
-                    {isPinned ? (
-                        <DropdownMenuItem onClick={() => unpinThread(thread.id)}>
-                            Unpin
-                        </DropdownMenuItem>
-                    ) : (
-                        <DropdownMenuItem onClick={() => pinThread(thread.id)}>
-                            Pin
-                        </DropdownMenuItem>
-                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>

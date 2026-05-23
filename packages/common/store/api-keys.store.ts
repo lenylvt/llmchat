@@ -3,12 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type ApiKeys = {
-    OPENAI_API_KEY?: string;
-    ANTHROPIC_API_KEY?: string;
-    GEMINI_API_KEY?: string;
-    JINA_API_KEY?: string;
-    FIREWORKS_API_KEY?: string;
-    SERPER_API_KEY?: string;
+    XAI_API_KEY?: string;
 };
 
 type ApiKeysState = {
@@ -17,7 +12,7 @@ type ApiKeysState = {
     removeKey: (provider: keyof ApiKeys) => void;
     clearAllKeys: () => void;
     getAllKeys: () => ApiKeys;
-    hasApiKeyForChatMode: (chatMode: ChatMode) => boolean;
+    hasApiKeyForChatMode: (_chatMode: ChatMode) => boolean;
 };
 
 export const useApiKeysStore = create<ApiKeysState>()(
@@ -36,30 +31,8 @@ export const useApiKeysStore = create<ApiKeysState>()(
                 }),
             clearAllKeys: () => set({ keys: {} }),
             getAllKeys: () => get().keys,
-            hasApiKeyForChatMode: (chatMode: ChatMode) => {
-                const apiKeys = get().keys;
-                switch (chatMode) {
-                    case ChatMode.O4_Mini:
-                    case ChatMode.GPT_4o_Mini:
-                    case ChatMode.GPT_4_1_Mini:
-                    case ChatMode.GPT_4_1_Nano:
-                    case ChatMode.GPT_4_1:
-                        return !!apiKeys['OPENAI_API_KEY'];
-                    case ChatMode.GEMINI_2_FLASH:
-                        return !!apiKeys['GEMINI_API_KEY'];
-                    case ChatMode.CLAUDE_3_5_SONNET:
-                    case ChatMode.CLAUDE_3_7_SONNET:
-                        return !!apiKeys['ANTHROPIC_API_KEY'];
-                    case ChatMode.DEEPSEEK_R1:
-                    case ChatMode.LLAMA_4_SCOUT:
-                        return !!apiKeys['FIREWORKS_API_KEY'];
-                    default:
-                        return false;
-                }
-            },
+            hasApiKeyForChatMode: () => !!get().keys.XAI_API_KEY,
         }),
-        {
-            name: 'api-keys-storage',
-        }
+        { name: 'api-keys' }
     )
 );

@@ -1,11 +1,11 @@
 import { ThreadItem } from '@repo/common/components';
 import { useChatStore } from '@repo/common/store';
-import { useParams } from 'next/navigation';
+import { useParams } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export function Thread() {
-    const { threadId } = useParams();
+    const { threadId } = useParams({ strict: false });
     const currentThreadId = threadId?.toString() ?? '';
     const previousThreadItems = useChatStore(
         useShallow(state => state.getPreviousThreadItems(currentThreadId))

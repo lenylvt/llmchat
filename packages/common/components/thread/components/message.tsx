@@ -1,4 +1,4 @@
-import { ChatEditor, markdownStyles } from '@repo/common/components';
+import { AnimateEnterWords, ChatEditor, markdownStyles } from '@repo/common/components';
 import { useAgentStream, useChatEditor, useCopyText } from '@repo/common/hooks';
 import { useChatStore } from '@repo/common/store';
 import { ThreadItem } from '@repo/shared/types';
@@ -6,14 +6,16 @@ import { Button, cn } from '@repo/ui';
 import { IconCheck, IconCopy, IconPencil } from '@tabler/icons-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { ImageMessage } from './image-message';
+import { MessageFileAttachments } from './message-file-attachments';
+
 type MessageProps = {
     message: string;
     imageAttachment?: string;
+    fileAttachments?: ThreadItem['fileAttachments'];
     threadItem: ThreadItem;
 };
 
-export const Message = memo(({ message, imageAttachment, threadItem }: MessageProps) => {
+export const Message = memo(({ message, imageAttachment, fileAttachments, threadItem }: MessageProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const messageRef = useRef<HTMLDivElement>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -36,15 +38,16 @@ export const Message = memo(({ message, imageAttachment, threadItem }: MessagePr
     const toggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
 
     return (
-        <div className="flex w-full flex-col items-end gap-2 pt-4">
-            {imageAttachment && <ImageMessage imageAttachment={imageAttachment} />}
+        <div className="flex w-full flex-col items-end gap-2 self-end pt-4">
+            <MessageFileAttachments files={fileAttachments} imageAttachment={imageAttachment} />
+            {(message || isEditing) && (
             <div
                 className={cn(
-                    'text-foreground bg-tertiary group relative max-w-[80%] overflow-hidden rounded-lg',
+                    'text-foreground bg-tertiary group relative max-w-[80%] overflow-hidden rounded-xl shadow-sm',
                     isEditing && 'border-hard'
                 )}
             >
-                {!isEditing && (
+                {!isEditing && message && (
                     <>
                         <div
                             ref={messageRef}
@@ -57,7 +60,7 @@ export const Message = memo(({ message, imageAttachment, threadItem }: MessagePr
                                 transition: 'max-height 0.3s ease-in-out',
                             }}
                         >
-                            {message}
+                            <AnimateEnterWords text={message} staggerStart={1} />
                         </div>
                         <div
                             className={cn(
@@ -118,6 +121,7 @@ export const Message = memo(({ message, imageAttachment, threadItem }: MessagePr
                     />
                 )}
             </div>
+            )}
         </div>
     );
 });
@@ -148,6 +152,9 @@ export const EditMessage = memo(({ message, onCancel, threadItem, width }: TEdit
         const formData = new FormData();
         formData.append('query', query);
         formData.append('imageAttachment', threadItem.imageAttachment || '');
+        if (threadItem.fileAttachments?.length) {
+            formData.append('fileAttachments', JSON.stringify(threadItem.fileAttachments));
+        }
         const threadItems = await getThreadItems(threadItem.threadId);
 
         handleSubmit({

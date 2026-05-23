@@ -1,7 +1,6 @@
 import { useChatStore } from '@repo/common/store';
 import { Button, Flex } from '@repo/ui';
 import { X } from 'lucide-react';
-import Image from 'next/image';
 
 export const ImageAttachment = () => {
     const attachment = useChatStore(state => state.imageAttachment);
@@ -11,12 +10,10 @@ export const ImageAttachment = () => {
     return (
         <Flex className="pl-2 pr-2 pt-2 md:pl-3" gap="sm">
             <div className="relative h-[40px] w-[40px] rounded-lg border border-black/10 shadow-sm dark:border-white/10">
-                <Image
+                <img
                     src={attachment.base64}
                     alt="uploaded image"
                     className="h-full w-full overflow-hidden rounded-lg object-cover"
-                    width={0}
-                    height={0}
                 />
 
                 <Button

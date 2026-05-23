@@ -90,5 +90,6 @@ export const useImageAttachment = () => {
         dropzonProps,
         handleImageUpload,
         clearAttachment,
+        readImageFile,
     };
 };

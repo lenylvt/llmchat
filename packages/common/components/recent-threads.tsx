@@ -3,19 +3,12 @@ import { useChatStore } from '@repo/common/store';
 import { Button } from '@repo/ui';
 import { IconArrowRight, IconMessageCircleFilled } from '@tabler/icons-react';
 import moment from 'moment';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 
 export const RecentThreads = () => {
     const { setIsCommandSearchOpen } = useRootContext();
     const threads = useChatStore(state => state.threads.slice(0, 4));
-    const router = useRouter();
-
-    useEffect(() => {
-        threads.forEach(thread => {
-            router.prefetch(`/chat/${thread.id}`);
-        });
-    }, [threads]);
+    const navigate = useNavigate();
 
     if (threads.length === 0) {
         return null;
@@ -42,7 +35,12 @@ export const RecentThreads = () => {
                         <div
                             key={thread.id}
                             className="bg-background border-border flex cursor-pointer flex-col gap-1 rounded-2xl border p-4 text-sm transition-all duration-200 hover:border-yellow-900/20 hover:bg-yellow-700/5 hover:shadow-sm"
-                            onClick={() => router.push(`/chat/${thread.id}`)}
+                            onClick={() =>
+                                navigate({
+                                    to: '/chat/$threadId',
+                                    params: { threadId: thread.id },
+                                })
+                            }
                         >
                             <IconMessageCircleFilled
                                 size={16}

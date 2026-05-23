@@ -1,25 +1,24 @@
 'use client';
-import { useAuth } from '@clerk/nextjs';
 import {
     ImageAttachment,
     ImageDropzoneRoot,
-    MessagesRemainingBadge,
+    PendingFileAttachments,
+    FileUpload,
 } from '@repo/common/components';
-import { useImageAttachment } from '@repo/common/hooks';
+import { useSession } from '../../lib/auth-client';
+import { useFileAttachments, useImageAttachment } from '@repo/common/hooks';
 import { ChatModeConfig } from '@repo/shared/config';
 import { cn, Flex } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useNavigate, useParams, useRouterState } from '@tanstack/react-router';
 import React, { useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 import { useAgentStream } from '../../hooks/agent-provider';
 import { useChatEditor } from '../../hooks/use-editor';
 import { useChatStore } from '../../store';
-import { ExamplePrompts } from '../exmaple-prompts';
-import { ChatModeButton, GeneratingStatus, SendStopButton, WebSearchButton } from './chat-actions';
+import { ChatModeButton, GeneratingStatus, SendStopButton } from './chat-actions';
 import { ChatEditor } from './chat-editor';
-import { ImageUpload } from './image-upload';
 
 export const ChatInput = ({
     showGreeting = true,
@@ -30,9 +29,10 @@ export const ChatInput = ({
     showBottomBar?: boolean;
     isFollowUp?: boolean;
 }) => {
-    const { isSignedIn } = useAuth();
+    const { data: session } = useSession();
+    const isSignedIn = !!session?.user;
 
-    const { threadId: currentThreadId } = useParams();
+    const { threadId: currentThreadId } = useParams({ strict: false });
     const { editor } = useChatEditor({
         placeholder: isFollowUp ? 'Ask follow up' : 'Ask anything',
         onInit: ({ editor }) => {
@@ -54,26 +54,44 @@ export const ChatInput = ({
     const threadItemsLength = useChatStore(useShallow(state => state.threadItems.length));
     const { handleSubmit } = useAgentStream();
     const createThread = useChatStore(state => state.createThread);
-    const useWebSearch = useChatStore(state => state.useWebSearch);
     const isGenerating = useChatStore(state => state.isGenerating);
-    const isChatPage = usePathname().startsWith('/chat');
+    const pathname = useRouterState({ select: s => s.location.pathname });
+    const isChatPage = pathname.startsWith('/chat');
     const imageAttachment = useChatStore(state => state.imageAttachment);
     const clearImageAttachment = useChatStore(state => state.clearImageAttachment);
+    const clearPendingFileAttachments = useChatStore(state => state.clearPendingFileAttachments);
+    const pendingFileAttachments = useChatStore(state => state.pendingFileAttachments);
+    const pendingFileUploadCount = useChatStore(state => state.pendingFileUploadCount);
     const stopGeneration = useChatStore(state => state.stopGeneration);
-    const hasTextInput = !!editor?.getText();
-    const { dropzonProps, handleImageUpload } = useImageAttachment();
-    const { push } = useRouter();
+    const { readImageFile } = useImageAttachment();
+    const {
+        dropzoneProps: dropzonProps,
+        handleFileUpload,
+        isUploading: isUploadingFiles,
+    } = useFileAttachments(file => {
+        void readImageFile(file);
+    });
+    const hasTextInput =
+        !!editor?.getText() || !!imageAttachment?.base64 || pendingFileAttachments.length > 0;
+    const canSend =
+        hasTextInput && pendingFileUploadCount === 0 && !isUploadingFiles;
+    const navigate = useNavigate();
     const chatMode = useChatStore(state => state.chatMode);
     const sendMessage = async () => {
         if (
             !isSignedIn &&
             !!ChatModeConfig[chatMode as keyof typeof ChatModeConfig]?.isAuthRequired
         ) {
-            push('/sign-in');
+            navigate({ to: '/sign-in' });
             return;
         }
 
-        if (!editor?.getText()) {
+        if (!canSend) {
+            return;
+        }
+
+        if (!isSignedIn && pendingFileAttachments.length > 0) {
+            navigate({ to: '/sign-in' });
             return;
         }
 
@@ -81,10 +99,10 @@ export const ChatInput = ({
 
         if (!threadId) {
             const optimisticId = uuidv4();
-            push(`/chat/${optimisticId}`);
-            createThread(optimisticId, {
+            await createThread(optimisticId, {
                 title: editor?.getText(),
             });
+            navigate({ to: '/chat/$threadId', params: { threadId: optimisticId } });
             threadId = optimisticId;
         }
 
@@ -92,9 +110,10 @@ export const ChatInput = ({
         const formData = new FormData();
         formData.append('query', editor.getText());
         imageAttachment?.base64 && formData.append('imageAttachment', imageAttachment?.base64);
+        if (pendingFileAttachments.length > 0) {
+            formData.append('fileAttachments', JSON.stringify(pendingFileAttachments));
+        }
         const threadItems = currentThreadId ? await getThreadItems(currentThreadId.toString()) : [];
-
-        console.log('threadItems', threadItems);
 
         handleSubmit({
             formData,
@@ -102,11 +121,11 @@ export const ChatInput = ({
             messages: threadItems.sort(
                 (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
             ),
-            useWebSearch,
         });
         window.localStorage.removeItem('draft-message');
         editor.commands.clearContent();
         clearImageAttachment();
+        clearPendingFileAttachments();
     };
 
     const renderChatInput = () => (
@@ -139,6 +158,7 @@ export const ChatInput = ({
                                     className="w-full"
                                 >
                                     <ImageAttachment />
+                                    <PendingFileAttachments />
                                     <Flex className="flex w-full flex-row items-end gap-0">
                                         <ChatEditor
                                             sendMessage={sendMessage}
@@ -153,20 +173,15 @@ export const ChatInput = ({
                                         items="center"
                                         justify="between"
                                     >
-                                        {isGenerating && !isChatPage ? (
+                                        {isGenerating ? (
                                             <GeneratingStatus />
                                         ) : (
                                             <Flex gap="xs" items="center" className="shrink-0">
                                                 <ChatModeButton />
-                                                {/* <AttachmentButton /> */}
-                                                <WebSearchButton />
-                                                {/* <ToolsMenu /> */}
-                                                <ImageUpload
-                                                    id="image-attachment"
-                                                    label="Image"
-                                                    tooltip="Image Attachment"
-                                                    showIcon={true}
-                                                    handleImageUpload={handleImageUpload}
+                                                <FileUpload
+                                                    id="file-attachment"
+                                                    tooltip="Attach file"
+                                                    handleFileUpload={handleFileUpload}
                                                 />
                                             </Flex>
                                         )}
@@ -176,7 +191,7 @@ export const ChatInput = ({
                                                 isGenerating={isGenerating}
                                                 isChatPage={isChatPage}
                                                 stopGeneration={stopGeneration}
-                                                hasTextInput={hasTextInput}
+                                                hasTextInput={canSend}
                                                 sendMessage={sendMessage}
                                             />
                                         </Flex>
@@ -197,7 +212,6 @@ export const ChatInput = ({
                     </ImageDropzoneRoot>
                 </Flex>
             </motion.div>
-            <MessagesRemainingBadge key="remaining-messages" />
         </AnimatePresence>
     );
 
@@ -248,7 +262,6 @@ export const ChatInput = ({
                     )}
 
                     {renderChatBottom()}
-                    {!currentThreadId && showGreeting && <ExamplePrompts />}
 
                     {/* <ChatFooter /> */}
                 </Flex>

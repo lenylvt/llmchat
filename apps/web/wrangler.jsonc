@@ -1,0 +1,45 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "llmchat",
+    "workers_dev": true,
+    "compatibility_date": "2025-05-15",
+    "compatibility_flags": ["nodejs_compat"],
+    "main": "src/server.ts",
+    "observability": {
+        "enabled": true
+    },
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "llmchat-db",
+            "database_id": "e9c4c0ff-ff4d-47ea-aa1d-dad95928e290",
+            "migrations_dir": "migrations"
+        }
+    ],
+    "kv_namespaces": [
+        {
+            "binding": "KV",
+            "id": "21415ce6729c4103a8d6194d51e4c784",
+            "preview_id": "7dd923f69d404408ac75a0d6ff4b83bc"
+        }
+    ],
+    "send_email": [
+        {
+            "name": "EMAIL",
+            "remote": true
+        }
+    ],
+    "vars": {
+        "BETTER_AUTH_URL": "https://ia.lenylvt.cc",
+        "AUTH_FROM_EMAIL": "auth@lenylvt.cc"
+    },
+    "routes": [
+        {
+            "pattern": "ia.lenylvt.cc",
+            "custom_domain": true
+        }
+    ],
+    "triggers": {
+        "crons": ["0 */6 * * *"]
+    }
+}

@@ -1,6 +1,6 @@
 'use client';
 import { useRootContext } from '@repo/common/context';
-import { useAppStore, useChatStore } from '@repo/common/store';
+import { useChatStore } from '@repo/common/store';
 import {
     cn,
     CommandDialog,
@@ -13,28 +13,24 @@ import {
 } from '@repo/ui';
 import {
     IconCommand,
-    IconKey,
     IconMessageCircleFilled,
     IconPlus,
     IconTrash,
 } from '@tabler/icons-react';
 import moment from 'moment';
-import { useTheme } from 'next-themes';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 
 export const CommandSearch = () => {
-    const { threadId: currentThreadId } = useParams();
+    const { threadId: currentThreadId } = useParams({ strict: false });
     const { isCommandSearchOpen, setIsCommandSearchOpen } = useRootContext();
     const threads = useChatStore(state => state.threads);
     const getThread = useChatStore(state => state.getThread);
     const removeThread = useChatStore(state => state.deleteThread);
     const switchThread = useChatStore(state => state.switchThread);
-    const router = useRouter();
-    const { theme, setTheme } = useTheme();
+    const navigate = useNavigate();
     const clearThreads = useChatStore(state => state.clearAllThreads);
-    const setIsSettingsOpen = useAppStore(state => state.setIsSettingsOpen);
-    const setSettingTab = useAppStore(state => state.setSettingTab);
+    const startNewChat = useChatStore(state => state.startNewChat);
     const groupedThreads: Record<string, typeof threads> = {
         today: [],
         yesterday: [],
@@ -67,9 +63,6 @@ export const CommandSearch = () => {
         }
     });
 
-    useEffect(() => {
-        router.prefetch('/chat');
-    }, [isCommandSearchOpen, threads, router]);
 
     useEffect(() => {
         if (isCommandSearchOpen) {
@@ -94,7 +87,8 @@ export const CommandSearch = () => {
             name: 'New Thread',
             icon: IconPlus,
             action: () => {
-                router.push('/chat');
+                startNewChat();
+                navigate({ to: '/chat' });
                 onClose();
             },
         },
@@ -105,18 +99,9 @@ export const CommandSearch = () => {
                 const thread = await getThread(currentThreadId as string);
                 if (thread) {
                     removeThread(thread.id);
-                    router.push('/chat');
+                    navigate({ to: '/chat' });
                     onClose();
                 }
-            },
-        },
-        {
-            name: 'Use your own API key',
-            icon: IconKey,
-            action: () => {
-                setIsSettingsOpen(true);
-                setSettingTab('api-keys');
-                onClose();
             },
         },
         {
@@ -124,7 +109,7 @@ export const CommandSearch = () => {
             icon: IconTrash,
             action: () => {
                 clearThreads();
-                router.push('/chat');
+                navigate({ to: '/chat' });
                 onClose();
             },
         },
@@ -177,7 +162,10 @@ export const CommandSearch = () => {
                                         className={cn('w-full gap-3')}
                                         onSelect={() => {
                                             switchThread(thread.id);
-                                            router.push(`/chat/${thread.id}`);
+                                            navigate({
+                                                to: '/chat/$threadId',
+                                                params: { threadId: thread.id },
+                                            });
                                             onClose();
                                         }}
                                     >

@@ -1,7 +1,5 @@
-import { EventEmitter } from 'events';
-import { LangfuseTraceClient } from 'langfuse';
 import { Context, ContextSchemaDefinition } from './context';
-import { EventSchemaDefinition, TypedEventEmitter } from './events';
+import { EventEmitter, EventSchemaDefinition, TypedEventEmitter } from './events';
 import { ExecutionContext } from './execution-context';
 import { PersistenceLayer } from './persistence';
 import {
@@ -21,7 +19,6 @@ export class WorkflowEngine<
     private tasks: Map<string, TaskConfig<TEvent, TContext>>;
     private eventEmitter: EventEmitter;
     private executionContext: ExecutionContext;
-    private trace?: LangfuseTraceClient;
     private events?: TypedEventEmitter<TEvent>;
     private context?: Context<TContext>;
     private config?: WorkflowConfig;
@@ -30,7 +27,6 @@ export class WorkflowEngine<
 
     constructor({
         id,
-        trace,
         initialEventState,
         events,
         context,
@@ -39,7 +35,6 @@ export class WorkflowEngine<
         persistence,
     }: {
         id: string;
-        trace?: LangfuseTraceClient;
         initialEventState?: EventPayload;
         events?: TypedEventEmitter<TEvent>;
         context?: Context<TContext>;
@@ -51,7 +46,6 @@ export class WorkflowEngine<
         this.tasks = new Map();
         this.eventEmitter = new EventEmitter();
         this.executionContext = new ExecutionContext(this.eventEmitter);
-        this.trace = trace;
         this.events = events;
         this.context = context;
         this.config = config;
@@ -98,7 +92,6 @@ export class WorkflowEngine<
                 data,
                 executionContext: this.executionContext,
                 abort: this.executionContext.abortWorkflow.bind(this.executionContext),
-                trace: this.trace,
                 events: this.events,
                 context: this.context,
                 config: this.config,
@@ -177,7 +170,6 @@ export class WorkflowEngine<
                           data,
                           executionContext: this.executionContext,
                           abort: this.executionContext.abortWorkflow.bind(this.executionContext),
-                          trace: this.trace,
                           events: this.events,
                           context: this.context,
                           config: this.config,
@@ -233,7 +225,6 @@ export class WorkflowEngine<
                         result,
                         executionContext: this.executionContext,
                         abort: this.executionContext.abortWorkflow.bind(this.executionContext),
-                        trace: this.trace,
                         events: this.events,
                         context: this.context,
                         config: this.config,
@@ -293,7 +284,6 @@ export class WorkflowEngine<
                             data,
                             executionContext: this.executionContext,
                             abort: this.executionContext.abortWorkflow.bind(this.executionContext),
-                            trace: this.trace,
                             events: this.events,
                             context: this.context,
                             config: this.config,

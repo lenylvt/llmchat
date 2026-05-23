@@ -1,22 +1,17 @@
 'use client';
-import {
-    CommandSearch,
-    FeedbackWidget,
-    IntroDialog,
-    SettingsModal,
-    Sidebar,
-} from '@repo/common/components';
+import { CommandSearch, IntroDialog, SettingsModal, Sidebar } from '@repo/common/components';
 import { useRootContext } from '@repo/common/context';
 import { AgentProvider } from '@repo/common/hooks';
 import { useAppStore } from '@repo/common/store';
-import { plausible } from '@repo/shared/utils';
 import { Badge, Button, Flex, Toaster } from '@repo/ui';
 import { IconMoodSadDizzy, IconX } from '@tabler/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { usePathname } from 'next/navigation';
+import { useRouterState } from '@tanstack/react-router';
 import { FC, useEffect } from 'react';
 import { useStickToBottom } from 'use-stick-to-bottom';
 import { Drawer } from 'vaul';
+import { useSession } from '../../lib/auth-client';
+import { SignIn } from '../sign-in';
 
 export type TRootLayout = {
     children: React.ReactNode;
@@ -25,13 +20,32 @@ export type TRootLayout = {
 export const RootLayout: FC<TRootLayout> = ({ children }) => {
     const { isSidebarOpen, isMobileSidebarOpen, setIsMobileSidebarOpen } = useRootContext();
     const setIsSettingOpen = useAppStore(state => state.setIsSettingsOpen);
+    const pathname = useRouterState({ select: s => s.location.pathname });
+    const { data: session, isPending } = useSession();
+    const isSignInPage = pathname.startsWith('/sign-in');
+    const isSignedIn = !!session?.user;
 
     const containerClass =
         'relative flex flex-1 flex-row h-[calc(99dvh)] border border-border rounded-sm bg-secondary w-full overflow-hidden shadow-sm';
 
-    useEffect(() => {
-        plausible.trackPageview();
-    }, []);
+    if (isPending) {
+        return (
+            <div className="bg-tertiary flex h-[100dvh] w-full items-center justify-center">
+                <p className="text-muted-foreground text-sm">Loading…</p>
+            </div>
+        );
+    }
+
+    if (!isSignedIn) {
+        return (
+            <div className="bg-tertiary flex h-[100dvh] w-full items-center justify-center">
+                <div className="bg-secondary border-border flex min-h-[420px] w-full max-w-md items-center justify-center rounded-lg border shadow-sm">
+                    {isSignInPage ? children : <SignIn />}
+                </div>
+                <Toaster />
+            </div>
+        );
+    }
 
     return (
         <div className="bg-tertiary flex h-[100dvh] w-full flex-row overflow-hidden">
@@ -45,7 +59,7 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
                 </div>
             </div>
             <Flex className="hidden lg:flex">
-                <AnimatePresence>{isSidebarOpen && <Sidebar />}</AnimatePresence>
+                <Sidebar />
             </Flex>
 
             <Drawer.Root
@@ -78,7 +92,6 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
                                 </div>
                             </div>
                             <SideDrawer />
-                            <FeedbackWidget />
                             <IntroDialog />
                         </div>
                     </AgentProvider>
@@ -93,7 +106,7 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
 };
 
 export const SideDrawer = () => {
-    const pathname = usePathname();
+    const pathname = useRouterState({ select: s => s.location.pathname });
     const sideDrawer = useAppStore(state => state.sideDrawer);
     const dismissSideDrawer = useAppStore(state => state.dismissSideDrawer);
     const { scrollRef, contentRef } = useStickToBottom({

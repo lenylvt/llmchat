@@ -1,6 +1,5 @@
 'use client';
-import { initHotjar } from '@repo/shared/utils';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 export type RootContextType = {
     isSidebarOpen: boolean;
@@ -14,9 +13,6 @@ export type RootContextType = {
 export const RootContext = createContext<RootContextType | null>(null);
 
 export const RootProvider = ({ children }: { children: React.ReactNode }) => {
-    useEffect(() => {
-        initHotjar();
-    }, []);
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const [isCommandSearchOpen, setIsCommandSearchOpen] = useState(false);

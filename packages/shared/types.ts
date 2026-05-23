@@ -13,8 +13,6 @@ export type Thread = {
     title: string;
     createdAt: Date;
     updatedAt: Date;
-    pinned: boolean;
-    pinnedAt: Date;
     projectId?: string;
 };
 
@@ -59,6 +57,15 @@ export type ToolResult = {
     result: any;
 };
 
+export type ThreadFileAttachment = {
+    /** Local DB id (thread_files.id) */
+    id: string;
+    xaiFileId: string;
+    filename: string;
+    mediaType: string;
+    sizeBytes: number;
+};
+
 export type ThreadItem = {
     query: string;
     toolCalls?: Record<string, ToolCall>;
@@ -79,6 +86,7 @@ export type ThreadItem = {
     sources?: Source[];
     object?: Record<string, any>;
     imageAttachment?: string;
+    fileAttachments?: ThreadFileAttachment[];
 };
 
 export type MessageGroup = {

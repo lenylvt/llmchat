@@ -1,12 +1,13 @@
-import { useUser } from '@clerk/nextjs';
+import { useSession } from '../lib/auth-client';
 import { cn, Dialog, DialogContent } from '@repo/ui';
 import { IconCircleCheckFilled } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { Logo } from './logo';
+
 export const IntroDialog = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const { isSignedIn } = useUser();
+    const { data: session } = useSession();
+    const isSignedIn = !!session?.user;
 
     useEffect(() => {
         const hasSeenIntro = localStorage.getItem('hasSeenIntro');
@@ -27,31 +28,19 @@ export const IntroDialog = () => {
     const points = [
         {
             icon,
-            text: `**Privacy-focused**: Your chat history never leaves your device.`,
+            text: 'Conversations are stored securely on the server when you are signed in.',
         },
         {
             icon,
-            text: `**Open source**: Fully transparent and modifiable. Easily deploy it yourself.`,
+            text: 'Three modes: Normal chat, Pro (4 agents), and Deep research (16 agents).',
         },
         {
             icon,
-            text: `**Research-friendly**: Leverage Web Search, Pro Search, and Deep Research features.`,
+            text: 'Sign in with email OTP — no password required.',
         },
         {
             icon,
-            text: `**Comprehensive model support**: Compatible with all mainstream model providers.`,
-        },
-        {
-            icon,
-            text: `**BYOK (Bring Your Own Key)**: Use your own API key for unlimited chat.`,
-        },
-        {
-            icon,
-            text: `**MCP Compatibility**: Connect with any MCP servers/tools (coming soon).`,
-        },
-        {
-            icon,
-            text: `**Usage Tracking**: Monitor your model usage without paying (coming soon).`,
+            text: 'Powered by Grok 4.3 and Grok 4.20 multi-agent on xAI.',
         },
     ];
 
@@ -83,41 +72,25 @@ export const IntroDialog = () => {
                         >
                             <Logo className="text-brand size-5" />
                             <p className="font-clash text-foreground text-lg font-bold tracking-wide">
-                                llmchat.co
+                                ia.lenylvt.cc
                             </p>
                         </div>
-                        <p className="text-base font-semibold">
-                            Private, Open-Source, and Built for You
-                        </p>
+                        <p className="text-base font-semibold">Grok-powered AI chat</p>
                     </div>
 
                     <div className="flex flex-col gap-2">
-                        <h3 className="text-sm font-semibold">Key benefits:</h3>
+                        <h3 className="text-sm font-semibold">What you get</h3>
 
-                        <div className="flex flex-col items-start gap-1.5">
+                        <ul className="flex flex-col items-start gap-2">
                             {points.map((point, index) => (
-                                <div key={index} className="flex-inline flex items-start gap-2">
+                                <li key={index} className="flex items-start gap-2">
                                     {point.icon}
-                                    <ReactMarkdown
-                                        className="text-sm"
-                                        components={{
-                                            p: ({ children }) => (
-                                                <p className="text-muted-foreground text-sm">
-                                                    {children}
-                                                </p>
-                                            ),
-                                            strong: ({ children }) => (
-                                                <span className="text-sm font-semibold">
-                                                    {children}
-                                                </span>
-                                            ),
-                                        }}
-                                    >
+                                    <span className="text-muted-foreground text-sm leading-snug">
                                         {point.text}
-                                    </ReactMarkdown>
-                                </div>
+                                    </span>
+                                </li>
                             ))}
-                        </div>
+                        </ul>
                     </div>
                 </div>
             </DialogContent>

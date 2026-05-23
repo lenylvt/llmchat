@@ -4,8 +4,7 @@ const config = {
     presets: [sharedConfig],
     content: [
         './components/**/*.{js,ts,jsx,tsx,mdx}',
-        './app/**/*.{js,ts,jsx,tsx,mdx}',
-        './pages/**/*.{js,ts,jsx,tsx,mdx}',
+        './src/**/*.{js,ts,jsx,tsx,mdx}',
         './lib/**/*.{js,ts,jsx,tsx,mdx}',
         '../../packages/ui/src/**/*.{js,ts,jsx,tsx,mdx}',
         '../../packages/common/**/*.{js,ts,jsx,tsx,mdx}',

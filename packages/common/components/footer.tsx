@@ -1,39 +1,36 @@
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 
 export const Footer = () => {
-    const links = [
-        {
-            href: 'https://git.new/llmchat',
-            label: 'Star us on GitHub',
-        },
-        {
-            href: 'https://github.com',
-            label: 'Changelog',
-        },
-        {
-            href: '',
-            label: 'Feedback',
-        },
-        {
-            href: '/terms',
-            label: 'Terms',
-        },
-        {
-            href: '/privacy',
-            label: 'Privacy',
-        },
+    const externalLinks = [
+        { href: 'https://git.new/llmchat', label: 'Star us on GitHub' },
+        { href: 'https://github.com/trendy-design/llmchat', label: 'Changelog' },
     ];
+
     return (
         <div className="flex w-full flex-row items-center justify-center gap-4 p-3">
-            {links.map(link => (
-                <Link
+            {externalLinks.map(link => (
+                <a
                     key={link.href}
                     href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
                     className="text-muted-foreground text-xs opacity-50 hover:opacity-100"
                 >
                     {link.label}
-                </Link>
+                </a>
             ))}
+            <Link
+                to="/terms"
+                className="text-muted-foreground text-xs opacity-50 hover:opacity-100"
+            >
+                Terms
+            </Link>
+            <Link
+                to="/privacy"
+                className="text-muted-foreground text-xs opacity-50 hover:opacity-100"
+            >
+                Privacy
+            </Link>
         </div>
     );
 };

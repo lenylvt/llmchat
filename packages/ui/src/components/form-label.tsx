@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { cn } from '../lib/utils';
 import { Flex } from './flex';
 import { Type } from './text';
@@ -35,13 +34,14 @@ export const FormLabel = ({
                     )}
                 </Flex>
                 {link && (
-                    <Link
+                    <a
                         href={link}
                         target="_blank"
+                        rel="noreferrer"
                         className="decoration-brand/20 py-0.5 text-sm font-medium text-violet-500 underline underline-offset-4 hover:opacity-90"
                     >
                         {linkText}
-                    </Link>
+                    </a>
                 )}
                 {extra && extra()}
             </Flex>

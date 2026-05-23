@@ -1,8 +1,0 @@
-{
-    "extends": "@repo/typescript-config",
-    "compilerOptions": {
-        "baseUrl": "."
-    },
-    "include": ["**/*.ts", "**/**/*.ts"],
-    "exclude": ["node_modules"]
-}

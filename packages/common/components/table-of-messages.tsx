@@ -1,12 +1,12 @@
 import { useChatStore } from '@repo/common/store';
 import { Button, cn, Popover, PopoverContent, PopoverTrigger } from '@repo/ui';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useParams } from 'next/navigation';
+import { useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 export const TableOfMessages = () => {
-    const { threadId } = useParams();
+    const { threadId } = useParams({ strict: false });
     const currentThreadId = threadId?.toString() ?? '';
     const [isHovering, setIsHovering] = useState(false);
     const previousThreadItems = useChatStore(

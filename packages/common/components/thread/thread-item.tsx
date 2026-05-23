@@ -1,7 +1,7 @@
 import {
+    AnimateEnter,
     CitationProvider,
     FollowupSuggestions,
-    MarkdownContent,
     Message,
     MessageActions,
     MotionSkeleton,
@@ -9,13 +9,13 @@ import {
     SourceGrid,
     Steps,
 } from '@repo/common/components';
-import { useAnimatedText } from '@repo/common/hooks';
 import { useChatStore } from '@repo/common/store';
 import { ThreadItem as ThreadItemType } from '@repo/shared/types';
 import { Alert, AlertDescription, cn } from '@repo/ui';
-import { IconAlertCircle, IconBook } from '@tabler/icons-react';
+import { IconAlertCircle } from '@tabler/icons-react';
 import { memo, useEffect, useMemo, useRef } from 'react';
 import { useInView } from 'react-intersection-observer';
+import { StreamingAnswer } from './components/streaming-answer';
 
 export const ThreadItem = memo(
     ({
@@ -28,12 +28,13 @@ export const ThreadItem = memo(
         isGenerating: boolean;
         isLast: boolean;
     }) => {
-        const { isAnimationComplete, text: animatedText } = useAnimatedText(
-            threadItem.answer?.text || '',
-            isLast && isGenerating
-        );
+        const answerText = threadItem.answer?.text || '';
+        const isStreaming = isLast && isGenerating;
+        const isAnswerDone = ['COMPLETED', 'ERROR', 'ABORTED'].includes(threadItem.status || '');
+
         const setCurrentSources = useChatStore(state => state.setCurrentSources);
         const messageRef = useRef<HTMLDivElement>(null);
+        const actionsEnterApplied = useRef(false);
 
         const { ref: inViewRef, inView } = useInView({});
 
@@ -55,9 +56,16 @@ export const ThreadItem = memo(
             return setCurrentSources(sources);
         }, [threadItem]);
 
-        const hasAnswer = useMemo(() => {
-            return threadItem.answer?.text && threadItem.answer?.text.length > 0;
-        }, [threadItem.answer]);
+        const hasAnswer = answerText.length > 0;
+
+        const showMessageActions = useMemo(
+            () => !isStreaming && hasAnswer && (isAnswerDone || !isGenerating),
+            [isStreaming, hasAnswer, isAnswerDone, isGenerating]
+        );
+
+        if (showMessageActions && !actionsEnterApplied.current) {
+            actionsEnterApplied.current = true;
+        }
 
         const hasResponse = useMemo(() => {
             return (
@@ -70,6 +78,7 @@ export const ThreadItem = memo(
                 threadItem?.status === 'ERROR'
             );
         }, [threadItem]);
+
         return (
             <CitationProvider sources={threadItem.sources || []}>
                 <div className="w-full" ref={inViewRef} id={`thread-item-${threadItem.id}`}>
@@ -78,20 +87,18 @@ export const ThreadItem = memo(
                             <Message
                                 message={threadItem.query}
                                 imageAttachment={threadItem?.imageAttachment}
+                                fileAttachments={threadItem?.fileAttachments}
                                 threadItem={threadItem}
                             />
                         )}
 
-                        <div className="text-muted-foreground flex flex-row items-center gap-1.5 text-xs font-medium">
-                            <IconBook size={16} strokeWidth={2} />
-                            Answer
-                        </div>
-
                         {threadItem.steps && (
-                            <Steps
-                                steps={Object.values(threadItem?.steps || {})}
-                                threadItem={threadItem}
-                            />
+                            <AnimateEnter stagger={2}>
+                                <Steps
+                                    steps={Object.values(threadItem?.steps || {})}
+                                    threadItem={threadItem}
+                                />
+                            </AnimateEnter>
                         )}
 
                         {!hasResponse && (
@@ -103,28 +110,31 @@ export const ThreadItem = memo(
                             </div>
                         )}
 
-                        <div ref={messageRef} className="w-full">
-                            {hasAnswer && threadItem.answer?.text && (
-                                <div className="flex flex-col">
+                        <div ref={messageRef} className="min-w-0 w-full max-w-full">
+                            {hasAnswer && (
+                                <div className="flex min-w-0 w-full max-w-full flex-col gap-1">
                                     <SourceGrid sources={threadItem.sources || []} />
-
-                                    <MarkdownContent
-                                        content={animatedText || ''}
-                                        key={`answer-${threadItem.id}`}
-                                        isCompleted={['COMPLETED', 'ERROR', 'ABORTED'].includes(
-                                            threadItem.status || ''
-                                        )}
-                                        shouldAnimate={
-                                            !['COMPLETED', 'ERROR', 'ABORTED'].includes(
-                                                threadItem.status || ''
-                                            )
-                                        }
+                                    <StreamingAnswer
+                                        text={answerText}
+                                        isStreaming={isStreaming}
+                                        isCompleted={isAnswerDone}
                                         isLast={isLast}
                                     />
+                                    {showMessageActions && (
+                                        <MessageActions
+                                            threadItem={threadItem}
+                                            ref={messageRef}
+                                            isLast={isLast}
+                                            staggerStart={4}
+                                            withEnterAnimation={actionsEnterApplied.current}
+                                        />
+                                    )}
                                 </div>
                             )}
                         </div>
+
                         <QuestionPrompt threadItem={threadItem} />
+
                         {threadItem.error && (
                             <Alert variant="destructive">
                                 <AlertDescription>
@@ -145,28 +155,20 @@ export const ThreadItem = memo(
                             </Alert>
                         )}
 
-                        {isAnimationComplete &&
-                            (threadItem.status === 'COMPLETED' ||
-                                threadItem.status === 'ABORTED' ||
-                                threadItem.status === 'ERROR' ||
-                                !isGenerating) && (
-                                <MessageActions
-                                    threadItem={threadItem}
-                                    ref={messageRef}
-                                    isLast={isLast}
-                                />
-                            )}
-                        {isAnimationComplete && isLast && (
-                            <FollowupSuggestions suggestions={threadItem.suggestions || []} />
+                        {showMessageActions && isLast && (
+                            <AnimateEnter stagger={9}>
+                                <FollowupSuggestions suggestions={threadItem.suggestions || []} />
+                            </AnimateEnter>
                         )}
                     </div>
                 </div>
             </CitationProvider>
         );
     },
-    (prevProps, nextProps) => {
-        return JSON.stringify(prevProps.threadItem) === JSON.stringify(nextProps.threadItem);
-    }
+    (prevProps, nextProps) =>
+        prevProps.isGenerating === nextProps.isGenerating &&
+        prevProps.isLast === nextProps.isLast &&
+        JSON.stringify(prevProps.threadItem) === JSON.stringify(nextProps.threadItem)
 );
 
 ThreadItem.displayName = 'ThreadItem';
