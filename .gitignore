@@ -34,3 +34,7 @@ yarn-error.log*
 # turbo
 .turbo
 
+# compound-engineering optimize scratch
+.context/
+.worktrees/
+
