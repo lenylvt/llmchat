@@ -46,5 +46,5 @@ The Service may contain links to third-party websites. We advise you to review t
 
 ### Contact Us
 
-If you have any questions or concerns about this Privacy Policy, please feel free to contact us at [support@llmchat.co](mailto:support@llmchat.co). We will do our best to respond to your inquiries promptly.
+If you have any questions or concerns about this Privacy Policy, please contact us at [auth@lenylvt.cc](mailto:auth@lenylvt.cc).
 `;

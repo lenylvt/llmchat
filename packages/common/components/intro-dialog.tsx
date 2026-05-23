@@ -72,10 +72,10 @@ export const IntroDialog = () => {
                         >
                             <Logo className="text-brand size-5" />
                             <p className="font-clash text-foreground text-lg font-bold tracking-wide">
-                                ia.lenylvt.cc
+                                Groot
                             </p>
                         </div>
-                        <p className="text-base font-semibold">Grok-powered AI chat</p>
+                        <p className="text-base font-semibold">Grok on ia.lenylvt.cc</p>
                     </div>
 
                     <div className="flex flex-col gap-2">

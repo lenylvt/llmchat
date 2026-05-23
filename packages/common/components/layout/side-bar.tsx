@@ -100,7 +100,7 @@ export const Sidebar = () => {
                                 ✱
                             </div>
                             <span className="truncate text-sm font-semibold text-[#222]">
-                                llmchat.co
+                                Groot
                             </span>
                         </div>
                     )}

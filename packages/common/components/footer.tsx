@@ -2,8 +2,7 @@ import { Link } from '@tanstack/react-router';
 
 export const Footer = () => {
     const externalLinks = [
-        { href: 'https://git.new/llmchat', label: 'Star us on GitHub' },
-        { href: 'https://github.com/trendy-design/llmchat', label: 'Changelog' },
+        { href: 'https://github.com/lenylvt/llmchat', label: 'GitHub' },
     ];
 
     return (

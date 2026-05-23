@@ -15,7 +15,7 @@ export const Route = createRootRouteWithContext()({
                 content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
             },
             {
-                title: 'ia.lenylvt.cc — Grok chat & deep research',
+                title: 'Groot — Grok chat & deep research',
             },
             {
                 name: 'description',

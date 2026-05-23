@@ -1,8 +1,8 @@
-# AGENTS.md — llmchat workspace guide
+# AGENTS.md — Groot workspace guide
 
 ## Product
 
-**ia.lenylvt.cc** — AI chat with Grok (xAI), multi-agent deep research, web/X search. Conversations stored server-side on Cloudflare D1.
+**Groot** ([ia.lenylvt.cc](https://ia.lenylvt.cc)) — AI chat with Grok (xAI), multi-agent deep research, web/X search. Conversations stored server-side on Cloudflare D1. Maintained by **leny** (forked from the archived trendy-design project).
 
 | Aspect | Detail |
 |--------|--------|
