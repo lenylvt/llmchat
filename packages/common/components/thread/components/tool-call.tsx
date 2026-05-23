@@ -2,7 +2,7 @@ import { CodeBlock, ToolIcon } from '@repo/common/components';
 import { ToolCall as ToolCallType } from '@repo/shared/types';
 import { Badge, cn } from '@repo/ui';
 import { IconCaretDownFilled } from '@tabler/icons-react';
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useId, useState } from 'react';
 
 export type ToolCallProps = {
     toolCall: ToolCallType;
@@ -10,36 +10,44 @@ export type ToolCallProps = {
 
 export const ToolCallStep = memo(({ toolCall }: ToolCallProps) => {
     const [isOpen, setIsOpen] = useState(false);
+    const contentId = useId();
     const toggleOpen = useCallback(() => setIsOpen(prev => !prev), []);
 
     return (
-        <div className="flex w-full flex-col items-start overflow-hidden">
-            <div
-                className="flex w-full cursor-pointer flex-row items-center justify-between gap-2.5 pb-2 pt-2"
+        <div className="flex w-full min-w-0 flex-col items-start overflow-hidden rounded-lg border border-border/60 bg-muted/20">
+            <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={contentId}
+                className={cn(
+                    'flex min-h-10 w-full cursor-pointer flex-row items-center justify-between gap-2 px-3 py-2',
+                    'transition-transform transition-colors hover:bg-muted/40 active:scale-[0.96] motion-reduce:active:scale-100',
+                    'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2'
+                )}
                 onClick={toggleOpen}
             >
-                <div className="flex flex-row items-center gap-2.5">
+                <div className="flex min-w-0 flex-row items-center gap-2">
                     <ToolIcon />
-                    <Badge>{toolCall.toolName}</Badge>
+                    <Badge variant="secondary" className="max-w-[200px] truncate">
+                        {toolCall.toolName}
+                    </Badge>
                 </div>
-                <div className="pr-2">
-                    <IconCaretDownFilled
-                        size={14}
-                        strokeWidth={2}
-                        className={cn(
-                            'text-muted-foreground transform transition-transform',
-                            isOpen && 'rotate-180'
-                        )}
-                    />
-                </div>
-            </div>
+                <IconCaretDownFilled
+                    size={14}
+                    strokeWidth={2}
+                    className={cn(
+                        'text-muted-foreground shrink-0 transition-transform duration-200',
+                        isOpen && 'rotate-180'
+                    )}
+                />
+            </button>
             {isOpen && (
-                <div className="flex w-full flex-row items-center gap-2.5">
+                <div id={contentId} className="w-full border-t border-border/50 px-3 pb-3 pt-1">
                     <CodeBlock
                         variant="secondary"
                         showHeader={false}
                         lang="json"
-                        className="my-2"
+                        className="my-1 max-h-64 overflow-auto"
                         code={JSON.stringify(toolCall.args, null, 2)}
                     />
                 </div>

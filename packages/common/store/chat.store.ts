@@ -269,7 +269,6 @@ export const useChatStore = create(
                 }),
 
             setIsGenerating: isGenerating => {
-                useAppStore.getState().dismissSideDrawer();
                 set(s => {
                     s.isGenerating = isGenerating;
                 });

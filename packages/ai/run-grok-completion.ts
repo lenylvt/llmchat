@@ -1,14 +1,11 @@
 import type { CoreMessage } from 'ai';
 import type { Source } from '@repo/shared/types';
-import { streamText } from 'ai';
-import { getModelFromChatMode } from './models';
-import { getXai, getXaiApiKey } from './providers';
+import { getModelFromChatMode, getMultiAgentReasoningEffort } from './models';
+import { getXaiApiKey } from './providers';
 import { streamGrokCompletion } from './grok-stream';
 import { collectXaiFileIdsFromMessages, waitForXaiFilesReady } from './xai-file-ready';
-import { getXaiSearchTools } from './xai-search-tools';
 import { ChatMode } from '@repo/shared/config';
-import { consumeStreamText } from './workflow/utils';
-import { sourcesFromAnswerText } from './xai-citations';
+import type { ActivityController } from './workflow/activity';
 
 export type GrokCompletionResult = {
     text: string;
@@ -21,6 +18,7 @@ export type RunGrokCompletionOptions = {
     system: string;
     signal?: AbortSignal;
     onDelta: (delta: string) => void;
+    activity?: ActivityController;
 };
 
 export async function runGrokCompletion({
@@ -29,51 +27,26 @@ export async function runGrokCompletion({
     system,
     signal,
     onDelta,
+    activity,
 }: RunGrokCompletionOptions): Promise<GrokCompletionResult> {
     const fileIds = collectXaiFileIdsFromMessages(messages);
+    const isDeep = mode === ChatMode.Deep4 || mode === ChatMode.Deep16;
 
     if (fileIds.length > 0) {
         await waitForXaiFilesReady(fileIds, getXaiApiKey(), signal);
-        const model =
-            mode === ChatMode.Deep4 || mode === ChatMode.Deep16
-                ? 'grok-4.20-multi-agent'
-                : getModelFromChatMode(mode);
-        const reasoningEffort =
-            mode === ChatMode.Deep16 ? 'high' : mode === ChatMode.Deep4 ? 'medium' : undefined;
-
-        return streamGrokCompletion({
-            model,
-            messages,
-            system,
-            signal,
-            reasoningEffort,
-            onDelta: (delta, _full) => onDelta(delta),
-        });
     }
 
-    const xai = getXai();
-    const modelEnum = getModelFromChatMode(mode);
-    const isDeep = mode === ChatMode.Deep4 || mode === ChatMode.Deep16;
+    // Always use raw Responses SSE: real-time server tool calls + web_search_call / x_search_call payloads.
+    const model = isDeep ? 'grok-4.20-multi-agent' : getModelFromChatMode(mode);
+    const reasoningEffort = getMultiAgentReasoningEffort(mode);
 
-    const result = streamText({
-        model: xai.responses(isDeep ? 'grok-4.20-multi-agent' : modelEnum),
+    return streamGrokCompletion({
+        model,
         messages,
         system,
-        abortSignal: signal,
-        ...(isDeep
-            ? {
-                  providerOptions: {
-                      xai: {
-                          reasoning: {
-                              effort: mode === ChatMode.Deep16 ? 'high' : 'medium',
-                          },
-                      },
-                  },
-              }
-            : {}),
-        tools: getXaiSearchTools(xai),
+        signal,
+        reasoningEffort,
+        activity,
+        onDelta: (delta, _full) => onDelta(delta),
     });
-
-    const text = await consumeStreamText(result, (delta, _full) => onDelta(delta));
-    return { text, sources: sourcesFromAnswerText(text) };
 }

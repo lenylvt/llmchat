@@ -1,28 +1,10 @@
 import { Source, ThreadItem } from '@repo/shared/types';
-import { extractCitationUrlsFromText, mergeSourcesByIndex } from '@repo/shared/utils';
+import {
+    extractCitationUrlsFromText,
+    mergeSourcesByIndex,
+    sourceFromUnknownRow,
+} from '@repo/shared/utils';
 import { getHost, isValidUrl } from '@repo/shared/utils';
-
-function sourceFromRow(item: Record<string, unknown>, index: number): Source | null {
-    const link =
-        (typeof item.link === 'string' && item.link) ||
-        (typeof item.url === 'string' && item.url) ||
-        (typeof item.href === 'string' && item.href);
-
-    if (!link || !isValidUrl(link)) return null;
-
-    const title =
-        (typeof item.title === 'string' && item.title) ||
-        (typeof item.name === 'string' && item.name) ||
-        getHost(link) ||
-        link;
-
-    return {
-        index: typeof item.index === 'number' ? item.index : index,
-        link,
-        title,
-        snippet: typeof item.snippet === 'string' ? item.snippet : undefined,
-    };
-}
 
 function sourcesFromCitationUrls(citationUrls: Record<number, string>): Source[] {
     return Object.entries(citationUrls)
@@ -56,8 +38,8 @@ export function collectSourcesFromThreadItem(threadItem: ThreadItem): Source[] {
 
         data.forEach((row, i) => {
             if (!row || typeof row !== 'object') return;
-            const source = sourceFromRow(row as Record<string, unknown>, i + 1);
-            if (source) fromSteps.push(source);
+            const source = sourceFromUnknownRow(row, i + 1);
+            if (source && isValidUrl(source.link)) fromSteps.push(source);
         });
     }
     if (fromSteps.length > 0) {

@@ -1,4 +1,5 @@
 import { ChatMode } from '@repo/shared/config';
+import type { ToolCall, ToolResult } from '@repo/shared/types';
 import { CoreAssistantMessage, CoreUserMessage } from 'ai';
 import { useEffect, useRef, useState } from 'react';
 
@@ -40,8 +41,8 @@ export type WorkflowEventSchema = {
                 }[];
             }
         >;
-        toolCalls?: any[];
-        toolResults?: any[];
+        toolCalls?: Record<string, ToolCall>;
+        toolResults?: Record<string, ToolResult>;
         reasoning?: {
             text: string;
             final: boolean;

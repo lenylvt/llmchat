@@ -25,9 +25,9 @@
 
 | Mode | Model / behavior |
 |------|------------------|
-| `standard` | Grok 4.3 + web/X search (image + video understanding) |
-| `deep-4` | Grok 4.20 multi-agent, 4 agents (`reasoning.effort: medium`) + web/X search |
-| `deep-16` | Grok 4.20 multi-agent, 16 agents (`reasoning.effort: high`) + web/X search |
+| `standard` | Grok 4.3 + web/X search + code execution (image + video understanding) |
+| `deep-4` | Grok 4.20 multi-agent, 4 agents (`reasoning.effort: medium`) + web/X search + code execution |
+| `deep-16` | Grok 4.20 multi-agent, 16 agents (`reasoning.effort: high`) + web/X search + code execution |
 
 ## Key paths
 
@@ -39,8 +39,12 @@ apps/web/
   src/auth.ts          # BetterAuth server config
   wrangler.jsonc       # Workers, D1, KV, send_email bindings
 packages/ai/
-  providers.ts         # xAI provider
-  workflow/flow.ts     # runWorkflow (router → completion | deep-completion)
+  providers.ts              # xAI provider
+  grok-stream.ts            # raw xAI Responses SSE (+ activity ingest)
+  workflow/flow.ts            # runWorkflow (router → completion | deep-completion)
+  workflow/activity.ts        # ActivityController → toolCalls / steps
+  workflow/activity-stream.ts # ingestXaiActivityEvent from SSE
+  xai-server-tools.ts         # server tool type/name mapping (no UI strings)
 packages/common/
   store/chat.store.ts  # Zustand + D1 via thread-persistence injection
   lib/auth-client.ts   # BetterAuth client
@@ -83,6 +87,8 @@ cd apps/web && wrangler dev
 - OTP email: `void env.EMAIL.send(...)` — do not await (timing-attack mitigation).
 - BetterAuth: `tanstackStartCookies()` must be last plugin.
 - Deep multi-agent: do not send `max_tokens` to `grok-4.20-multi-agent`.
+- Tool activity UI: `AgentActivityCard` + side drawer `id: 'research'`; labels in `@repo/shared/utils` (`displayNameForServerTool`).
+- xAI activity: canonical `response.output_item.*` events; optional `tool_calls` chunks only when `id` / `call_id` is present (no synthetic tool ids).
 
 ## Files (xAI)
 

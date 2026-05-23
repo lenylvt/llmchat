@@ -1,5 +1,7 @@
 import { createTask } from '@repo/orchestrator';
+import { ChatMode } from '@repo/shared/config';
 import { runGrokCompletion } from '../../run-grok-completion';
+import { ActivityController } from '../activity';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
 import { ChunkBuffer, getHumanizedDate, handleError } from '../utils';
 
@@ -8,11 +10,14 @@ export const deepCompletionTask = createTask<WorkflowEventSchema, WorkflowContex
     execute: async ({ events, context, signal }) => {
         if (!context) throw new Error('Context required');
 
-        const mode = context.get('mode');
+        const mode = context.get('mode') ?? ChatMode.Standard;
         const messages =
             context
                 .get('messages')
                 ?.filter(m => (m.role === 'user' || m.role === 'assistant') && !!m.content) || [];
+
+        const activity = new ActivityController(events!);
+        activity.begin();
 
         const chunkBuffer = new ChunkBuffer({
             threshold: 200,
@@ -32,9 +37,12 @@ export const deepCompletionTask = createTask<WorkflowEventSchema, WorkflowContex
             messages,
             system,
             signal,
+            activity,
             onDelta: delta => chunkBuffer.add(delta),
         });
         chunkBuffer.end();
+
+        activity.complete();
 
         if (sources.length > 0) {
             events?.update('sources', () => sources);

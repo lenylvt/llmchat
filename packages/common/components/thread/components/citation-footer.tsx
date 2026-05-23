@@ -65,6 +65,7 @@ export function CitationFooter({ sources = [], className }: CitationFooterProps)
                     type="button"
                     onClick={() => {
                         openSideDrawer({
+                            id: 'sources',
                             title: 'Sources',
                             badge: sorted.length,
                             renderContent: () => <SourceList sources={sorted} />,
@@ -80,6 +81,7 @@ export function CitationFooter({ sources = [], className }: CitationFooterProps)
                     type="button"
                     onClick={() => {
                         openSideDrawer({
+                            id: 'sources',
                             title: 'Sources',
                             badge: sorted.length,
                             renderContent: () => <SourceList sources={sorted} />,
@@ -87,7 +89,7 @@ export function CitationFooter({ sources = [], className }: CitationFooterProps)
                     }}
                     className="text-muted-foreground hover:text-foreground text-[10px] font-medium underline-offset-2 hover:underline"
                 >
-                    Voir tout
+                    View all
                 </button>
             )}
         </div>

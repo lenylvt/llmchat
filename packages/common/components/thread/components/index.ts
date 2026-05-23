@@ -1,3 +1,7 @@
+export * from './activity-timeline';
+export * from './activity-tools-drawer';
+export * from './agent-activity-card';
+export * from './tool-activity-utils';
 export * from './followup-suggestion';
 export * from './goals';
 export * from './markdown-content';

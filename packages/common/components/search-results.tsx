@@ -1,7 +1,7 @@
 'use client';
 import { LinkFavicon, LinkPreviewPopover } from '@repo/common/components';
 import { Source } from '@repo/shared/types';
-import { getHost, getHostname } from '@repo/shared/utils';
+import { getHost, getHostname, sourceFromUnknownRow } from '@repo/shared/utils';
 import { Badge, Flex } from '@repo/ui';
 
 export type SearchResultsType = {
@@ -13,11 +13,19 @@ export const SearchResultsList = ({ sources }: SearchResultsType) => {
         return null;
     }
 
+    const normalized = sources
+        .map((row, index) => sourceFromUnknownRow(row, index + 1))
+        .filter((source): source is Source => source !== null);
+
+    if (normalized.length === 0) {
+        return null;
+    }
+
     return (
         <Flex direction="col" gap="md" className="w-full">
             {Array.isArray(sources) && (
                 <Flex gap="xs" className="mb-4 w-full flex-wrap overflow-x-hidden" items="stretch">
-                    {sources.map((source, index) => (
+                    {normalized.map((source, index) => (
                         <LinkPreviewPopover source={source} key={`source-${source.link}-${index}`}>
                             <Badge
                                 size="md"

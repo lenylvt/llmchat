@@ -12,7 +12,8 @@
         "./workflow": "./workflow/flow.ts",
         "./worker": "./worker/index.ts",
         "./xai-file-ready": "./xai-file-ready.ts",
-        "./run-grok-completion": "./run-grok-completion.ts"
+        "./run-grok-completion": "./run-grok-completion.ts",
+        "./xai-server-tools": "./xai-server-tools.ts"
     },
     "dependencies": {
         "@ai-sdk/xai": "2",

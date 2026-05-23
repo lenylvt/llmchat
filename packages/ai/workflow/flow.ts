@@ -5,6 +5,7 @@ import {
     WorkflowConfig,
 } from '@repo/orchestrator';
 import { ChatMode } from '@repo/shared/config';
+import type { ToolCall, ToolResult } from '@repo/shared/types';
 import { CoreMessage } from 'ai';
 import { completionTask, deepCompletionTask, modeRoutingTask } from './tasks';
 
@@ -20,8 +21,8 @@ export type WorkflowEventSchema = {
             status: Status;
         }
     >;
-    toolCalls?: unknown[];
-    toolResults?: unknown[];
+    toolCalls?: Record<string, ToolCall>;
+    toolResults?: Record<string, ToolResult>;
     answer: {
         text?: string;
         object?: unknown;
@@ -86,8 +87,8 @@ export const runWorkflow = ({
 
     const events = createTypedEventEmitter<WorkflowEventSchema>({
         steps: {},
-        toolCalls: [],
-        toolResults: [],
+        toolCalls: {},
+        toolResults: {},
         answer: { text: '', status: 'PENDING' },
         sources: [],
         suggestions: [],

@@ -1,5 +1,6 @@
 import { SearchResultsList, StepStatus, TextShimmer } from '@repo/common/components';
-import { Step } from '@repo/shared/types';
+import type { Source, Step } from '@repo/shared/types';
+import { sourceFromUnknownRow } from '@repo/shared/utils';
 import { Badge } from '@repo/ui';
 import { IconSearch } from '@tabler/icons-react';
 import { motion } from 'framer-motion';
@@ -10,7 +11,6 @@ export type StepRendererType = {
 };
 
 export const StepRenderer = ({ step }: StepRendererType) => {
-    console.log(step);
     const renderTextStep = () => {
         if (step?.text) {
             return (
@@ -88,7 +88,13 @@ export const StepRenderer = ({ step }: StepRendererType) => {
                         </TextShimmer>
                     </div>
                     <SearchResultsList
-                        sources={Array.isArray(step.steps?.read?.data) ? step.steps.read.data : []}
+                        sources={
+                            Array.isArray(step.steps?.read?.data)
+                                ? step.steps.read.data
+                                      .map((row, index) => sourceFromUnknownRow(row, index + 1))
+                                      .filter((source): source is Source => source !== null)
+                                : []
+                        }
                     />
                 </motion.div>
             );

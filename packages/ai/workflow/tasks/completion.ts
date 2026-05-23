@@ -1,6 +1,8 @@
 import { createTask } from '@repo/orchestrator';
+import { ChatMode } from '@repo/shared/config';
 import { buildStandardSystemPrompt } from '../../prompts/standard-system';
 import { runGrokCompletion } from '../../run-grok-completion';
+import { ActivityController } from '../activity';
 import { WorkflowContextSchema, WorkflowEventSchema } from '../flow';
 import { ChunkBuffer, handleError } from '../utils';
 
@@ -10,7 +12,7 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
         if (!context) throw new Error('Context required');
 
         const customInstructions = context.get('customInstructions');
-        const mode = context.get('mode');
+        const mode = context.get('mode') ?? ChatMode.Standard;
 
         const messages =
             context
@@ -18,6 +20,8 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
                 ?.filter(m => (m.role === 'user' || m.role === 'assistant') && !!m.content) || [];
 
         const system = buildStandardSystemPrompt(customInstructions);
+        const activity = new ActivityController(events!);
+        activity.begin();
 
         const chunkBuffer = new ChunkBuffer({
             threshold: 200,
@@ -35,9 +39,12 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
             messages,
             system,
             signal,
+            activity,
             onDelta: delta => chunkBuffer.add(delta),
         });
         chunkBuffer.end();
+
+        activity.complete();
 
         if (sources.length > 0) {
             events?.update('sources', () => sources);

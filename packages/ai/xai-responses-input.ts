@@ -105,6 +105,7 @@ export function buildXaiResponsesInput(
     return input;
 }
 
+/** Server-side agentic tools for `/v1/responses` (OpenAI-compatible type names). */
 export const XAI_RESPONSES_TOOLS = [
     { type: 'web_search' as const, enable_image_understanding: true },
     {
@@ -112,4 +113,5 @@ export const XAI_RESPONSES_TOOLS = [
         enable_image_understanding: true,
         enable_video_understanding: true,
     },
+    { type: 'code_interpreter' as const },
 ];

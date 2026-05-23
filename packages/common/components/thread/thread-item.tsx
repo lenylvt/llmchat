@@ -8,6 +8,7 @@ import {
     Steps,
 } from '@repo/common/components';
 import { useChatStore } from '@repo/common/store';
+import { ChatMode } from '@repo/shared/config';
 import { Source, ThreadItem as ThreadItemType } from '@repo/shared/types';
 import {
     mergeSourcesByIndex,
@@ -119,9 +120,36 @@ export const ThreadItem = memo(
             actionsEnterApplied.current = true;
         }
 
+        const hasActivitySteps = useMemo(() => {
+            const steps = threadItem.steps;
+            const tools = threadItem.toolCalls;
+            const hasToolsOrSteps =
+                (steps != null && Object.keys(steps).length > 0) ||
+                (tools != null && Object.keys(tools).length > 0);
+
+            const isMultiAgent =
+                threadItem.mode === ChatMode.Deep4 || threadItem.mode === ChatMode.Deep16;
+            const showMultiAgentStatus =
+                isMultiAgent &&
+                isLast &&
+                isGenerating &&
+                threadItem.status === 'PENDING' &&
+                !threadItem.answer?.text;
+
+            return hasToolsOrSteps || showMultiAgentStatus;
+        }, [
+            isGenerating,
+            isLast,
+            threadItem.answer?.text,
+            threadItem.mode,
+            threadItem.status,
+            threadItem.steps,
+            threadItem.toolCalls,
+        ]);
+
         const hasResponse = useMemo(() => {
             return (
-                !!threadItem?.steps ||
+                hasActivitySteps ||
                 !!threadItem?.answer?.text ||
                 !!threadItem?.object ||
                 !!threadItem?.error ||
@@ -129,7 +157,7 @@ export const ThreadItem = memo(
                 threadItem?.status === 'ABORTED' ||
                 threadItem?.status === 'ERROR'
             );
-        }, [threadItem]);
+        }, [hasActivitySteps, threadItem]);
 
         return (
             <div className="w-full" ref={inViewRef} id={`thread-item-${threadItem.id}`}>
@@ -143,12 +171,14 @@ export const ThreadItem = memo(
                         />
                     )}
 
-                    {threadItem.steps && (
+                    {hasActivitySteps && (
                         <AnimateEnter stagger={2}>
-                            <Steps
-                                steps={Object.values(threadItem?.steps || {})}
-                                threadItem={threadItem}
-                            />
+                            <div className="-mb-1 w-full">
+                                <Steps
+                                    steps={Object.values(threadItem.steps ?? {})}
+                                    threadItem={threadItem}
+                                />
+                            </div>
                         </AnimateEnter>
                     )}
 
@@ -161,7 +191,13 @@ export const ThreadItem = memo(
                         </div>
                     )}
 
-                    <div ref={messageRef} className="min-w-0 w-full max-w-full">
+                    <div
+                        ref={messageRef}
+                        className={cn(
+                            'min-w-0 w-full max-w-full',
+                            hasActivitySteps && hasAnswer && '-mt-1'
+                        )}
+                    >
                         {hasAnswer && (
                             <div className="flex min-w-0 w-full max-w-full flex-col gap-1">
                                 <StreamingAnswer prepared={prepared} />

@@ -7,8 +7,11 @@ export const SETTING_TABS = {
     PERSONALIZATION: 'personalization',
 } as const;
 
+export type SideDrawerId = 'research' | 'sources' | (string & {});
+
 type SideDrawerProps = {
     open: boolean;
+    id?: SideDrawerId;
     badge?: number;
     title: string | (() => React.ReactNode);
     renderContent: () => React.ReactNode;
@@ -51,7 +54,13 @@ export const useAppStore = create(
         setSettingTab: (tab: (typeof SETTING_TABS)[keyof typeof SETTING_TABS]) =>
             set({ settingTab: tab }),
         setShowSignInModal: (show: boolean) => set({ showSignInModal: show }),
-        sideDrawer: { open: false, title: '', renderContent: () => null, badge: undefined },
+        sideDrawer: {
+            open: false,
+            id: undefined,
+            title: '',
+            renderContent: () => null,
+            badge: undefined,
+        },
         openSideDrawer: (props: Omit<SideDrawerProps, 'open'>) => {
             set({ sideDrawer: { ...props, open: true } });
         },
@@ -61,7 +70,13 @@ export const useAppStore = create(
             })),
         dismissSideDrawer: () =>
             set({
-                sideDrawer: { open: false, title: '', renderContent: () => null, badge: undefined },
+                sideDrawer: {
+                    open: false,
+                    id: undefined,
+                    title: '',
+                    renderContent: () => null,
+                    badge: undefined,
+                },
             }),
     }))
 );

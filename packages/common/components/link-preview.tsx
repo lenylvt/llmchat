@@ -1,7 +1,7 @@
 'use client';
 
 import { Source } from '@repo/shared/types';
-import { getHost } from '@repo/shared/utils';
+import { getHost, sourceLinkFromUnknown } from '@repo/shared/utils';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@repo/ui';
 import { IconExternalLink } from '@tabler/icons-react';
 import React, { memo, useState } from 'react';
@@ -14,8 +14,9 @@ export type LinkPreviewType = {
 };
 
 export const LinkPreviewPopover = memo(({ source, children }: LinkPreviewType) => {
-    if (!source?.link?.trim()?.length) {
-        return null;
+    const link = sourceLinkFromUnknown(source?.link);
+    if (!link) {
+        return <>{children}</>;
     }
 
     return (
@@ -26,14 +27,14 @@ export const LinkPreviewPopover = memo(({ source, children }: LinkPreviewType) =
                 onClick={e => {
                     e.stopPropagation();
                     e.preventDefault();
-                    window.open(source.link, '_blank');
+                    window.open(link, '_blank');
                 }}
             >
                 <IconExternalLink
                     className="text-muted-foreground group-hover:text-brand absolute right-3 top-3"
                     size={14}
                 />
-                <LinkPreview source={source} />
+                <LinkPreview source={{ ...source, link }} />
             </HoverCardContent>
         </HoverCard>
     );

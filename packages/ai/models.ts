@@ -28,6 +28,20 @@ export const models: Model[] = [
     },
 ];
 
+/**
+ * Multi-agent agent count via Responses API `reasoning.effort`.
+ * @see https://docs.x.ai/developers/model-capabilities/text/multi-agent
+ * - low | medium → 4 agents
+ * - high | xhigh → 16 agents
+ */
+export function getMultiAgentReasoningEffort(
+    mode: ChatMode
+): 'medium' | 'high' | undefined {
+    if (mode === ChatMode.Deep16) return 'high';
+    if (mode === ChatMode.Deep4) return 'medium';
+    return undefined;
+}
+
 export const getModelFromChatMode = (mode?: string): ModelEnum => {
     switch (mode) {
         case ChatMode.Deep4:

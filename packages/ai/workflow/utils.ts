@@ -1,43 +1,8 @@
 import { TaskParams, TypedEventEmitter } from '@repo/orchestrator';
+import { mergeQueryStrings, mergeSourceRows } from '@repo/shared/utils';
 import { format } from 'date-fns';
-import type { StreamTextResult, ToolSet } from 'ai';
 import { WorkflowEventSchema } from './flow';
 import { generateErrorMessage } from './tasks/utils';
-
-/** Consume streamText output; handles text-delta parts from the AI SDK v5 stream. */
-export async function consumeStreamText<TOOLS extends ToolSet = ToolSet>(
-    result: StreamTextResult<TOOLS, never>,
-    onDelta: (delta: string, fullText: string) => void,
-): Promise<string> {
-    let fullText = '';
-    for await (const part of result.fullStream) {
-        const delta =
-            part.type === 'text-delta'
-                ? 'textDelta' in part && typeof part.textDelta === 'string'
-                    ? part.textDelta
-                    : 'text' in part && typeof part.text === 'string'
-                      ? part.text
-                      : 'delta' in part && typeof part.delta === 'string'
-                        ? part.delta
-                        : ''
-                : part.type === 'text' && 'text' in part && typeof part.text === 'string'
-                  ? part.text
-                  : '';
-        if (!delta) continue;
-        fullText += delta;
-        onDelta(delta, fullText);
-    }
-
-    if (!fullText.trim()) {
-        try {
-            fullText = await result.text;
-        } catch {
-            // fall through with accumulated stream text
-        }
-    }
-
-    return fullText;
-}
 
 export type ChunkBufferOptions = {
     threshold?: number;
@@ -125,11 +90,14 @@ export const sendEvents = (events?: TypedEventEmitter<WorkflowEventSchema>) => {
                         (acc, [key, value]) => {
                             const prevData = prev?.[stepId]?.steps?.[key]?.data;
                             let mergedData: unknown = value?.data;
-                            if (Array.isArray(value?.data)) {
-                                mergedData = [
-                                    ...(Array.isArray(prevData) ? prevData : []),
-                                    ...value.data,
-                                ];
+                            if (Array.isArray(value?.data) && Array.isArray(prevData)) {
+                                if (key === 'search') {
+                                    mergedData = mergeQueryStrings(prevData, value.data);
+                                } else if (key === 'read') {
+                                    mergedData = mergeSourceRows(prevData, value.data);
+                                } else {
+                                    mergedData = [...prevData, ...value.data];
+                                }
                             } else if (
                                 typeof value?.data === 'object' &&
                                 value?.data !== null &&

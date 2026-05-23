@@ -83,6 +83,17 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
             const prevItem = threadItemMap.get(threadItemId) || storeItem || ({} as ThreadItem);
             const answerPayload = eventData.answer as ThreadItem['answer'] | undefined;
 
+            // Server emits the full merged map each time; replace to avoid duplicate ghost keys.
+            const replaceToolCalls =
+                eventType === 'toolCalls' && eventData.toolCalls
+                    ? { toolCalls: eventData.toolCalls as ThreadItem['toolCalls'] }
+                    : {};
+
+            const replaceToolResults =
+                eventType === 'toolResults' && eventData.toolResults
+                    ? { toolResults: eventData.toolResults as ThreadItem['toolResults'] }
+                    : {};
+
             const updatedItem: ThreadItem = {
                 ...prevItem,
                 query: (eventData?.query as string) || prevItem.query || '',
@@ -93,6 +104,8 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                 object: (eventData?.object as Record<string, unknown>) || prevItem.object,
                 createdAt: prevItem.createdAt || new Date(),
                 updatedAt: new Date(),
+                ...replaceToolCalls,
+                ...replaceToolResults,
                 ...(eventType === 'answer'
                     ? {
                           answer: {
@@ -118,7 +131,9 @@ export const AgentProvider = ({ children }: { children: ReactNode }) => {
                                       ? eventData.error
                                       : 'Generation failed'),
                           }
-                        : { [eventType]: eventData[eventType] }),
+                        : eventType === 'toolCalls' || eventType === 'toolResults'
+                          ? {}
+                          : { [eventType]: eventData[eventType] }),
             } as ThreadItem;
 
             threadItemMap.set(threadItemId, updatedItem);

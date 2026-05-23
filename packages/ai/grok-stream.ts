@@ -9,6 +9,8 @@ import {
 import { isXaiFileIngestError } from './xai-file-ready';
 import { sleep } from './sleep';
 import { mergeSources, sourcesFromAnswerText, sourcesFromXaiResponse } from './xai-citations';
+import type { ActivityController } from './workflow/activity';
+import { ingestXaiActivityEvent } from './workflow/activity-stream';
 
 export type GrokStreamResult = { text: string; sources: Source[] };
 
@@ -25,6 +27,7 @@ type StreamGrokOptions = {
     signal?: AbortSignal;
     onDelta: (delta: string, fullText: string) => void;
     reasoningEffort?: 'low' | 'medium' | 'high';
+    activity?: ActivityController;
 };
 
 function extractSourcesFromStreamEvent(
@@ -45,7 +48,8 @@ function extractSourcesFromStreamEvent(
 
 async function readResponseStream(
     response: Response,
-    onDelta: (delta: string, fullText: string) => void
+    onDelta: (delta: string, fullText: string) => void,
+    activity?: ActivityController
 ): Promise<GrokStreamResult> {
     if (!response.body) throw new Error('No response body from xAI');
 
@@ -71,6 +75,10 @@ async function readResponseStream(
 
             try {
                 const event = JSON.parse(data) as Record<string, unknown>;
+                if (activity) {
+                    ingestXaiActivityEvent(event, activity);
+                }
+
                 if (event.type === 'response.output_text.delta' && typeof event.delta === 'string') {
                     fullText += event.delta;
                     onDelta(event.delta, fullText);
@@ -101,6 +109,7 @@ export async function streamGrokCompletion({
     signal,
     onDelta,
     reasoningEffort,
+    activity,
 }: StreamGrokOptions): Promise<GrokStreamResult> {
     const apiKey = getXaiApiKey();
     if (!apiKey) throw new Error('XAI_API_KEY is not configured');
@@ -134,7 +143,7 @@ export async function streamGrokCompletion({
         });
 
         if (response.ok) {
-            return readResponseStream(response, onDelta);
+            return readResponseStream(response, onDelta, activity);
         }
 
         const errText = await response.text().catch(() => '');
