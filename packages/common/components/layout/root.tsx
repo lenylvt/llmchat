@@ -21,14 +21,17 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
     const { isSidebarOpen, isMobileSidebarOpen, setIsMobileSidebarOpen } = useRootContext();
     const setIsSettingOpen = useAppStore(state => state.setIsSettingsOpen);
     const pathname = useRouterState({ select: s => s.location.pathname });
-    const { data: session, isPending } = useSession();
+    const { data: session, isPending, isRefetching } = useSession();
     const isSignInPage = pathname.startsWith('/sign-in');
     const isSignedIn = !!session?.user;
+    // Better Auth refetches session on tab focus; while logged out that sets
+    // isPending again and used to unmount the OTP form — keep UI stable.
+    const isInitialSessionLoad = isPending && !isRefetching;
 
     const containerClass =
         'relative flex flex-1 flex-row h-[calc(99dvh)] border border-border rounded-sm bg-secondary w-full overflow-hidden shadow-sm';
 
-    if (isPending) {
+    if (isInitialSessionLoad) {
         return (
             <div className="bg-tertiary flex h-[100dvh] w-full items-center justify-center">
                 <p className="text-muted-foreground text-sm">Loading…</p>

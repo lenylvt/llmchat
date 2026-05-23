@@ -1,5 +1,5 @@
 'use client';
-import { DotSpinner } from '@repo/common/components';
+import { DotSpinner } from '../thread/step-status';
 import { useApiKeysStore, useChatStore } from '@repo/common/store';
 import {
     ChatMode,
