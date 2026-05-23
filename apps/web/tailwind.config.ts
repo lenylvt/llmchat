@@ -7,7 +7,10 @@ const config = {
         './src/**/*.{js,ts,jsx,tsx,mdx}',
         './lib/**/*.{js,ts,jsx,tsx,mdx}',
         '../../packages/ui/src/**/*.{js,ts,jsx,tsx,mdx}',
-        '../../packages/common/**/*.{js,ts,jsx,tsx,mdx}',
+        '../../packages/common/components/**/*.{ts,tsx}',
+        '../../packages/common/hooks/**/*.{ts,tsx}',
+        '../../packages/common/context/**/*.{ts,tsx}',
+        '../../packages/common/lib/**/*.{ts,tsx}',
     ],
     theme: {
         extend: {
