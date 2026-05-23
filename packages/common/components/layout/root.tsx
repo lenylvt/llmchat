@@ -1,7 +1,7 @@
 'use client';
 import { CommandSearch, IntroDialog, SettingsModal, Sidebar } from '@repo/common/components';
 import { useRootContext } from '@repo/common/context';
-import { AgentProvider } from '@repo/common/hooks';
+import { AgentProvider, useAppHotkeys } from '@repo/common/hooks';
 import { useAppStore } from '@repo/common/store';
 import { Badge, Button, Flex, Toaster } from '@repo/ui';
 import { IconMoodSadDizzy, IconX } from '@tabler/icons-react';
@@ -16,6 +16,11 @@ import { SignIn } from '../sign-in';
 export type TRootLayout = {
     children: React.ReactNode;
 };
+
+function SignedInHotkeys() {
+    useAppHotkeys();
+    return null;
+}
 
 export const RootLayout: FC<TRootLayout> = ({ children }) => {
     const { isSidebarOpen, isMobileSidebarOpen, setIsMobileSidebarOpen } = useRootContext();
@@ -52,6 +57,7 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
 
     return (
         <div className="bg-tertiary flex h-[100dvh] w-full flex-row overflow-hidden">
+            <SignedInHotkeys />
             <div className="bg-tertiary item-center fixed inset-0 z-[99999] flex justify-center md:hidden">
                 <div className="flex flex-col items-center justify-center gap-2">
                     <IconMoodSadDizzy size={24} strokeWidth={2} className="text-muted-foreground" />
@@ -88,7 +94,7 @@ export const RootLayout: FC<TRootLayout> = ({ children }) => {
                         <div className={containerClass}>
                             <div className="relative flex h-full w-0 flex-1 flex-row">
                                 <div className="flex w-full flex-col gap-2 overflow-y-auto">
-                                    <div className="from-secondary to-secondary/0 via-secondary/70 absolute left-0 right-0 top-0 z-40 flex flex-row items-center justify-center gap-1 bg-gradient-to-b p-2 pb-12"></div>
+                                    <div className="from-secondary to-secondary/0 via-secondary/70 pointer-events-none absolute left-0 right-0 top-0 z-40 flex flex-row items-center justify-center gap-1 bg-gradient-to-b p-2 pb-12" />
                                     {/* Auth Button Header */}
 
                                     {children}

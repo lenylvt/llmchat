@@ -3,10 +3,14 @@ import {
     ErrorPlaceholder,
     mdxComponents,
 } from '@repo/common/components';
+import type { PreparedAnswerContent } from '@repo/shared/utils';
 import { cn } from '@repo/ui';
-import { memo, useEffect, useMemo, useState } from 'react';
+import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
+export type { PreparedAnswerContent } from '@repo/shared/utils';
+export { prepareAnswerContent } from '@repo/shared/utils';
 
 export const markdownStyles = {
     'prose prose-sm min-w-0 max-w-full whitespace-normal break-words [overflow-wrap:anywhere]': true,
@@ -46,11 +50,8 @@ export const markdownStyles = {
 };
 
 type MarkdownContentProps = {
-    content: string;
+    prepared: PreparedAnswerContent;
     className?: string;
-    isCompleted?: boolean;
-    isLast?: boolean;
-    isStreaming?: boolean;
 };
 
 export const removeIncompleteTags = (content: string) => {
@@ -69,64 +70,25 @@ export const normalizeContent = (content: string) => {
     return content.replace(/\\n/g, '\n');
 };
 
-function parseCitationsWithSourceTags(markdown: string): string {
-    const citationRegex = /\[(\d+)\]/g;
-    let result = markdown;
+export const MarkdownContent = memo(({ prepared, className }: MarkdownContentProps) => {
+    if (!prepared.markdown) return null;
 
-    result = result.replace(citationRegex, (_match, p1) => {
-        return `<Source>${p1}</Source>`;
-    });
-
-    const multipleCitationsRegex = /\[(\d+(?:,\s*\d+)+)\]/g;
-    result = result.replace(multipleCitationsRegex, match => {
-        const numbers = match.match(/\d+/g) || [];
-        return numbers.map(num => `<Source>${num}</Source>`).join(' ');
-    });
-
-    return result;
-}
-
-export function prepareMarkdown(content: string) {
-    if (!content) return '';
-    return removeIncompleteTags(
-        parseCitationsWithSourceTags(normalizeContent(content))
+    return (
+        <div
+            className={cn(
+                'relative w-full min-w-0 max-w-full overflow-x-hidden',
+                markdownStyles,
+                className
+            )}
+        >
+            <ErrorBoundary fallback={<ErrorPlaceholder />}>
+                <div className="prose-pre:max-w-full prose-pre:overflow-x-auto min-w-0 max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto">
+                    <MemoizedMdxChunk chunk={prepared.markdown} />
+                </div>
+            </ErrorBoundary>
+        </div>
     );
-}
-
-export const MarkdownContent = memo(
-    ({ content, className, isStreaming }: MarkdownContentProps) => {
-        const prepared = useMemo(() => prepareMarkdown(content), [content]);
-        const [displayContent, setDisplayContent] = useState(prepared);
-
-        useEffect(() => {
-            if (!isStreaming) {
-                setDisplayContent(prepared);
-                return;
-            }
-
-            const timeout = window.setTimeout(() => setDisplayContent(prepared), 24);
-            return () => window.clearTimeout(timeout);
-        }, [prepared, isStreaming]);
-
-        if (!displayContent) return null;
-
-        return (
-            <div
-                className={cn(
-                    'relative w-full min-w-0 max-w-full overflow-x-hidden',
-                    markdownStyles,
-                    className
-                )}
-            >
-                <ErrorBoundary fallback={<ErrorPlaceholder />}>
-                    <div className="prose-pre:max-w-full prose-pre:overflow-x-auto min-w-0 max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto">
-                        <MemoizedMdxChunk chunk={displayContent} />
-                    </div>
-                </ErrorBoundary>
-            </div>
-        );
-    }
-);
+});
 
 MarkdownContent.displayName = 'MarkdownContent';
 

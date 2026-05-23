@@ -1,4 +1,5 @@
 import type { CoreMessage } from 'ai';
+import type { Source } from '@repo/shared/types';
 import { getXaiApiKey } from './providers';
 import {
     buildXaiResponsesInput,
@@ -7,6 +8,11 @@ import {
 } from './xai-responses-input';
 import { isXaiFileIngestError } from './xai-file-ready';
 import { sleep } from './sleep';
+import { mergeSources, sourcesFromAnswerText, sourcesFromXaiResponse } from './xai-citations';
+
+export type GrokStreamResult = { text: string; sources: Source[] };
+
+const SOURCE_EVENT_TYPES = new Set(['response.completed']);
 
 export function grokMessagesNeedFileStream(messages: CoreMessage[]): boolean {
     return messagesHaveXaiFileIds(messages);
@@ -21,16 +27,33 @@ type StreamGrokOptions = {
     reasoningEffort?: 'low' | 'medium' | 'high';
 };
 
+function extractSourcesFromStreamEvent(
+    event: Record<string, unknown>,
+    fullText: string
+): Source[] {
+    if (!SOURCE_EVENT_TYPES.has(String(event.type))) {
+        return [];
+    }
+
+    const response = event.response;
+    if (!response || typeof response !== 'object') {
+        return [];
+    }
+
+    return sourcesFromXaiResponse(response as Record<string, unknown>, fullText);
+}
+
 async function readResponseStream(
     response: Response,
     onDelta: (delta: string, fullText: string) => void
-): Promise<string> {
+): Promise<GrokStreamResult> {
     if (!response.body) throw new Error('No response body from xAI');
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
     let fullText = '';
+    let apiSources: Source[] = [];
 
     while (true) {
         const { done, value } = await reader.read();
@@ -47,10 +70,16 @@ async function readResponseStream(
             if (!data || data === '[DONE]') continue;
 
             try {
-                const event = JSON.parse(data) as { type?: string; delta?: string };
+                const event = JSON.parse(data) as Record<string, unknown>;
                 if (event.type === 'response.output_text.delta' && typeof event.delta === 'string') {
                     fullText += event.delta;
                     onDelta(event.delta, fullText);
+                    continue;
+                }
+
+                const found = extractSourcesFromStreamEvent(event, fullText);
+                if (found.length > 0) {
+                    apiSources = found;
                 }
             } catch {
                 // ignore malformed SSE chunks
@@ -58,7 +87,9 @@ async function readResponseStream(
         }
     }
 
-    return fullText;
+    const sources = mergeSources(apiSources, sourcesFromAnswerText(fullText));
+
+    return { text: fullText, sources };
 }
 
 const INGEST_RETRY_DELAYS_MS = [0, 2000, 4000, 6000];
@@ -70,7 +101,7 @@ export async function streamGrokCompletion({
     signal,
     onDelta,
     reasoningEffort,
-}: StreamGrokOptions): Promise<string> {
+}: StreamGrokOptions): Promise<GrokStreamResult> {
     const apiKey = getXaiApiKey();
     if (!apiKey) throw new Error('XAI_API_KEY is not configured');
 

@@ -1,4 +1,5 @@
 export * from './agent-provider';
+export * from './use-app-hotkeys';
 export * from './use-clipboard';
 export * from './use-copy-text';
 export * from './use-editor';

@@ -71,17 +71,6 @@ export const CommandSearch = () => {
 
     const onClose = () => setIsCommandSearchOpen(false);
 
-    useEffect(() => {
-        const down = (e: KeyboardEvent) => {
-            if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault();
-                setIsCommandSearchOpen(true);
-            }
-        };
-        document.addEventListener('keydown', down);
-        return () => document.removeEventListener('keydown', down);
-    }, []);
-
     const actions = [
         {
             name: 'New Thread',

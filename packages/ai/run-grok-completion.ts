@@ -1,4 +1,5 @@
 import type { CoreMessage } from 'ai';
+import type { Source } from '@repo/shared/types';
 import { streamText } from 'ai';
 import { getModelFromChatMode } from './models';
 import { getXai, getXaiApiKey } from './providers';
@@ -7,6 +8,12 @@ import { collectXaiFileIdsFromMessages, waitForXaiFilesReady } from './xai-file-
 import { getXaiSearchTools } from './xai-search-tools';
 import { ChatMode } from '@repo/shared/config';
 import { consumeStreamText } from './workflow/utils';
+import { sourcesFromAnswerText } from './xai-citations';
+
+export type GrokCompletionResult = {
+    text: string;
+    sources: Source[];
+};
 
 export type RunGrokCompletionOptions = {
     mode: ChatMode;
@@ -22,7 +29,7 @@ export async function runGrokCompletion({
     system,
     signal,
     onDelta,
-}: RunGrokCompletionOptions): Promise<string> {
+}: RunGrokCompletionOptions): Promise<GrokCompletionResult> {
     const fileIds = collectXaiFileIdsFromMessages(messages);
 
     if (fileIds.length > 0) {
@@ -67,5 +74,6 @@ export async function runGrokCompletion({
         tools: getXaiSearchTools(xai),
     });
 
-    return consumeStreamText(result, (delta, _full) => onDelta(delta));
+    const text = await consumeStreamText(result, (delta, _full) => onDelta(delta));
+    return { text, sources: sourcesFromAnswerText(text) };
 }

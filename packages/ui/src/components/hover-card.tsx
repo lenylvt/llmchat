@@ -87,9 +87,13 @@ const HoverCardRoot = ({ openDelay, closeDelay, children }: HoverCardRootProps) 
 
 type HoverCardTriggerProps = React.HTMLAttributes<HTMLDivElement>;
 
-const HoverCardTrigger = React.forwardRef<HTMLDivElement, HoverCardTriggerProps>((props, ref) => (
-    <div ref={ref} {...props} className="inline-block cursor-pointer" />
-));
+const HoverCardTrigger = React.forwardRef<HTMLDivElement, HoverCardTriggerProps>(
+    ({ className, children, ...props }, ref) => (
+        <div ref={ref} className={cn('inline-flex align-baseline', className)} {...props}>
+            {children}
+        </div>
+    )
+);
 HoverCardTrigger.displayName = 'HoverCardTrigger';
 
 type HoverCardContentProps = React.HTMLAttributes<HTMLDivElement>;

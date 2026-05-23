@@ -36,7 +36,7 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
             },
         });
 
-        const fullText = await runGrokCompletion({
+        const { text: fullText, sources } = await runGrokCompletion({
             mode,
             messages,
             system,
@@ -44,6 +44,10 @@ export const completionTask = createTask<WorkflowEventSchema, WorkflowContextSch
             onDelta: delta => chunkBuffer.add(delta),
         });
         chunkBuffer.end();
+
+        if (sources.length > 0) {
+            events?.update('sources', () => sources);
+        }
 
         events?.update('answer', () => ({
             text: fullText,

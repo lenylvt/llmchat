@@ -1,35 +1,25 @@
 'use client';
 
+import type { PreparedAnswerContent } from '@repo/shared/utils';
 import { memo } from 'react';
 import { MarkdownContent } from './markdown-content';
 
 type StreamingAnswerProps = {
-    text: string;
-    isStreaming: boolean;
-    isCompleted?: boolean;
-    isLast?: boolean;
+    prepared: PreparedAnswerContent;
 };
 
 const answerBodyClass =
     'w-full min-w-0 max-w-full overflow-x-hidden break-words [overflow-wrap:anywhere]';
 
-/** Renders markdown while streaming and after completion without swapping renderers. */
-export const StreamingAnswer = memo(
-    ({ text, isStreaming, isCompleted, isLast }: StreamingAnswerProps) => {
-        if (!text) return null;
+/** Renders prepared markdown (citations already stripped upstream). */
+export const StreamingAnswer = memo(({ prepared }: StreamingAnswerProps) => {
+    if (!prepared.markdown && prepared.citedIndices.length === 0) return null;
 
-        return (
-            <div className={answerBodyClass}>
-                <MarkdownContent
-                    content={text}
-                    isCompleted={isCompleted}
-                    isStreaming={isStreaming}
-                    isLast={isLast}
-                    className="min-w-0 max-w-full"
-                />
-            </div>
-        );
-    }
-);
+    return (
+        <div className={answerBodyClass}>
+            <MarkdownContent prepared={prepared} className="min-w-0 max-w-full" />
+        </div>
+    );
+});
 
 StreamingAnswer.displayName = 'StreamingAnswer';

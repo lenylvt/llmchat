@@ -27,7 +27,7 @@ export const deepCompletionTask = createTask<WorkflowEventSchema, WorkflowContex
 
         const system = `You are Grok conducting deep multi-agent research. Today is ${getHumanizedDate()}.`;
 
-        const fullText = await runGrokCompletion({
+        const { text: fullText, sources } = await runGrokCompletion({
             mode,
             messages,
             system,
@@ -35,6 +35,10 @@ export const deepCompletionTask = createTask<WorkflowEventSchema, WorkflowContex
             onDelta: delta => chunkBuffer.add(delta),
         });
         chunkBuffer.end();
+
+        if (sources.length > 0) {
+            events?.update('sources', () => sources);
+        }
 
         events?.update('answer', () => ({
             text: fullText,

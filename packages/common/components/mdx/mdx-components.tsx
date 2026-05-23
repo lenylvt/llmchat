@@ -1,40 +1,29 @@
-import { CitationProviderContext, CodeBlock, LinkPreviewPopover } from '@repo/common/components';
+import { CodeBlock } from '@repo/common/components';
 import { isValidUrl } from '@repo/shared/utils';
-import { ComponentProps, ReactElement, useContext } from 'react';
+import { ReactElement } from 'react';
 import type { Components } from 'react-markdown';
 
 export const mdxComponents: Components = {
-    Source: ({ children }) => {
-        const { getSourceByIndex } = useContext(CitationProviderContext);
-        const index = children as string;
-
-        const source = getSourceByIndex(parseInt(index));
-
-        const url = source?.link;
-
-        if (!url) {
-            return null;
-        }
-
-        const isValid = isValidUrl(url);
-
-        if (!isValid) {
-            return null;
+    a: ({ href, children, ...props }) => {
+        if (href && isValidUrl(href)) {
+            return (
+                <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-brand underline-offset-2 hover:underline"
+                    {...props}
+                >
+                    {children}
+                </a>
+            );
         }
 
         return (
-            <LinkPreviewPopover source={source}>
-                <div className="bg-quaternary text-quaternary-foreground/50 hover:bg-brand group mx-0.5 inline-flex size-3.5 flex-row items-center justify-center gap-1 rounded-sm text-[10px] font-medium hover:text-white">
-                    {source?.index}
-                </div>
-            </LinkPreviewPopover>
+            <a href={href} {...props}>
+                {children}
+            </a>
         );
-    },
-    p: ({ children }) => {
-        return <p>{children}</p>;
-    },
-    li: ({ children }) => {
-        return <li>{children}</li>;
     },
 
     pre: ({ children }) => {

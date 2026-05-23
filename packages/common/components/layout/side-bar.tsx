@@ -81,10 +81,10 @@ export const Sidebar = () => {
     return (
         <div
             className={cn(
-                'relative bottom-0 left-0 top-0 z-[50] flex h-[100dvh] flex-shrink-0 flex-col border-r py-2 transition-all duration-200',
+                'relative bottom-0 left-0 top-0 z-[50] flex h-[100dvh] flex-shrink-0 flex-col py-2 transition-all duration-200',
                 isSidebarOpen
-                    ? 'border-border/70 shadow-xs top-0 h-full w-[230px] bg-[#f4f4f4]'
-                    : 'border-border/70 w-[50px] bg-[#f4f4f4]'
+                    ? 'shadow-xs top-0 h-full w-[230px] bg-[#f4f4f4]'
+                    : 'w-[50px] bg-[#f4f4f4]'
             )}
         >
             <div className="flex w-full flex-1 flex-col overflow-hidden">
@@ -120,49 +120,49 @@ export const Sidebar = () => {
                     </Button>
                 </div>
 
-                <div className="flex w-full flex-col gap-2 px-2">
+                <div
+                    className={cn(
+                        'flex w-full gap-2 px-2',
+                        isSidebarOpen ? 'flex-row items-center' : 'flex-col'
+                    )}
+                >
                     <Button
                         size={isSidebarOpen ? 'sm' : 'icon'}
                         variant="secondary"
-                        tooltip={isSidebarOpen ? undefined : 'New Chat'}
+                        tooltip={isSidebarOpen ? undefined : 'New Chat (⌘N)'}
                         tooltipSide="right"
                         className={cn(
-                            'border-border/80 bg-background hover:bg-background relative h-9 w-full justify-center rounded-lg border shadow-sm'
+                            'border-border/80 bg-background hover:bg-background h-9 min-w-0 rounded-lg border shadow-sm',
+                            isSidebarOpen
+                                ? 'flex-1 justify-start px-3'
+                                : 'w-full justify-center px-0'
                         )}
                         onClick={handleNewChat}
                     >
                         <IconPlus
                             size={16}
                             strokeWidth={2}
-                            className={cn(isSidebarOpen && 'absolute left-2')}
-                        />
-                        {isSidebarOpen && 'New'}
-                    </Button>
-                    <Button
-                        size={isSidebarOpen ? 'sm' : 'icon'}
-                        variant="secondary"
-                        tooltip={isSidebarOpen ? undefined : 'Search'}
-                        tooltipSide="right"
-                        className={cn(
-                            'border-border/80 bg-background hover:bg-background relative h-9 w-full justify-start rounded-lg border px-3 shadow-sm',
-                            !isSidebarOpen && 'justify-center px-0'
-                        )}
-                        onClick={() => setIsCommandSearchOpen(true)}
-                    >
-                        <IconSearch
-                            size={16}
-                            strokeWidth={2}
-                            className={cn(isSidebarOpen && 'mr-1')}
+                            className={cn(isSidebarOpen && 'mr-1 shrink-0')}
                         />
                         {isSidebarOpen && (
                             <>
-                                <span className="text-sm">Search</span>
+                                <span className="text-sm">New</span>
                                 <span className="ml-auto flex items-center gap-1">
                                     <Kbd className="h-5 min-w-5 px-1 text-[10px]">⌘</Kbd>
-                                    <Kbd className="h-5 min-w-5 px-1 text-[10px]">K</Kbd>
+                                    <Kbd className="h-5 min-w-5 px-1 text-[10px]">N</Kbd>
                                 </span>
                             </>
                         )}
+                    </Button>
+                    <Button
+                        size="icon"
+                        variant="secondary"
+                        tooltip="Search (⌘K)"
+                        tooltipSide="right"
+                        className="border-border/80 bg-background hover:bg-background h-9 w-9 shrink-0 rounded-lg border shadow-sm"
+                        onClick={() => setIsCommandSearchOpen(true)}
+                    >
+                        <IconSearch size={16} strokeWidth={2} />
                     </Button>
                 </div>
 

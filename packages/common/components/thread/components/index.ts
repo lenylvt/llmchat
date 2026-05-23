@@ -4,7 +4,7 @@ export * from './markdown-content';
 export * from './message';
 export * from './message-actions';
 export * from './question-prompt';
-export * from './source-grid';
+export * from './citation-footer';
 export * from './source-list';
 export * from './tool-call';
 
