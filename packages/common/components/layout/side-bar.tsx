@@ -125,8 +125,8 @@ export const Sidebar = () => {
                 'relative bottom-0 left-0 top-0 z-[50] flex h-[100dvh] flex-shrink-0 flex-col overflow-hidden py-2',
                 sidebarTransition,
                 isSidebarOpen
-                    ? 'shadow-xs top-0 h-full w-[230px] bg-[#f4f4f4]'
-                    : 'w-[50px] bg-[#f4f4f4]'
+                    ? 'shadow-xs top-0 h-full w-[230px] bg-secondary'
+                    : 'w-[50px] bg-secondary'
             )}
         >
             <div className="flex w-full flex-1 flex-col overflow-hidden">
@@ -145,7 +145,7 @@ export const Sidebar = () => {
                         <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#ff6b3d] text-[11px] font-semibold text-white">
                             ✱
                         </div>
-                        <span className="truncate text-sm font-semibold text-[#222]">Groot</span>
+                        <span className="text-foreground truncate text-sm font-semibold">Groot</span>
                     </div>
                     <Button
                         variant="ghost"
@@ -244,7 +244,7 @@ export const Sidebar = () => {
                         </div>
                         {isSidebarOpen && (
                             <>
-                                <span className="min-w-0 flex-1 truncate text-sm text-[#222]">
+                                <span className="text-foreground min-w-0 flex-1 truncate text-sm">
                                     {session?.user?.name || session?.user?.email || 'Account'}
                                 </span>
                                 <button

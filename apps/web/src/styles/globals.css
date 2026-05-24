@@ -66,6 +66,14 @@
 }
 
 @layer base {
+    html {
+        color-scheme: light;
+    }
+
+    html.dark {
+        color-scheme: dark;
+    }
+
     :root {
         --vaul-overlay-background: 255, 255, 255;
         --vaul-overlay-background-start: transparent;

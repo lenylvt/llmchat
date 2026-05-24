@@ -1,4 +1,5 @@
 import { ClientRootLayout } from '../components/ClientRootLayout';
+import { SystemTheme } from '../components/SystemTheme';
 import { ThreadPersistenceInit } from '../components/ThreadPersistenceInit';
 import { ReactQueryProvider, RootProvider } from '@repo/common/context';
 import { TooltipProvider, cn } from '@repo/ui';
@@ -36,8 +37,14 @@ function RootComponent() {
         <html lang="en" className="font-sans" suppressHydrationWarning>
             <head>
                 <HeadContent />
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `(function(){try{var d=document.documentElement,m=window.matchMedia('(prefers-color-scheme: dark)');d.classList.toggle('dark',m.matches);}catch(e){}})();`,
+                    }}
+                />
             </head>
             <body className={cn('min-h-screen bg-background antialiased')}>
+                <SystemTheme />
                 <RootProvider>
                     <ThreadPersistenceInit />
                     <TooltipProvider>
