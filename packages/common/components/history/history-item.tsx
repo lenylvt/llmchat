@@ -62,15 +62,16 @@ export const HistoryItem = ({
     };
 
     const containerClasses = cn(
-        'gap-2 w-full group w-full relative flex flex-row items-center h-7 py-0.5 pl-2 pr-1 rounded-sm hover:bg-quaternary',
+        'group relative flex h-7 w-full flex-row items-center gap-2 rounded-sm py-0.5 pl-2 pr-1 transition-colors duration-100 ease-out motion-reduce:transition-none',
+        'hover:bg-quaternary active:bg-quaternary/80',
         isActive || isEditing ? 'bg-tertiary' : ''
     );
 
     const handleEditClick = () => {
         setIsEditing(true);
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             historyInputRef.current?.focus();
-        }, 500);
+        });
     };
 
     const handleDeleteConfirm = () => {
@@ -115,8 +116,8 @@ export const HistoryItem = ({
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="ghost"
-                        size="icon-xs"
-                        className="bg-quaternary invisible absolute right-1 shrink-0 group-hover:visible group-hover:w-6"
+                        size="icon-sm"
+                        className="bg-quaternary invisible absolute right-1 shrink-0 transition-[color,opacity,transform] duration-100 group-hover:visible group-hover:w-8 active:scale-[0.96] motion-reduce:active:scale-100 before:absolute before:-inset-1 before:content-['']"
                         onClick={e => {
                             e.stopPropagation();
                             setOpenOptions(!openOptions);
