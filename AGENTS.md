@@ -88,7 +88,7 @@ cd apps/web && wrangler dev
 - BetterAuth: `tanstackStartCookies()` must be last plugin.
 - Deep multi-agent: do not send `max_tokens` to `grok-4.20-multi-agent`.
 - Tool activity UI: `AgentActivityCard` + side drawer `id: 'research'`; labels in `@repo/shared/utils` (`displayNameForServerTool`).
-- Imagine: client tools `image_creator` / `video_creator` → `packages/ai/xai-imagine.ts`; gallery on `threadItem.object.imagineMedia`. Full matrix: `docs/IMAGINE_CAPABILITIES.md`.
+- Imagine: client tools `image_creator` / `video_creator` → `packages/ai/xai-imagine.ts`; gallery on `threadItem.object.imagineMedia`.
 - Thread document: client `artifact` function tool → `ActivityController` updates `threads.artifact` (D1 canonical); SSE `object` may include `artifact` for UI refresh only (not persisted on `thread_items.object`). UI `ArtifactCard` + drawer `id: 'artifact'` (Tiptap light editor).
 - xAI activity: canonical `response.output_item.*` events; optional `tool_calls` chunks only when `id` / `call_id` is present (no synthetic tool ids).
 
