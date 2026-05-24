@@ -12,7 +12,48 @@ import {
     IconSearch,
 } from '@tabler/icons-react';
 import { useNavigate, useParams, useRouterState } from '@tanstack/react-router';
+import { AnimatePresence, motion } from 'framer-motion';
 import moment from 'moment';
+
+const sidebarTransition =
+    'transition-[width,box-shadow] duration-150 ease-out motion-reduce:transition-none motion-reduce:duration-0';
+
+const sidebarIconTransition = { type: 'spring' as const, duration: 0.12, bounce: 0 };
+
+const iconHitClass =
+    'relative before:absolute before:-inset-1 before:content-[""] active:scale-[0.96] motion-reduce:active:scale-100';
+
+function SidebarCollapseIcon({ isOpen }: { isOpen: boolean }) {
+    return (
+        <span className="relative grid size-4 place-items-center" aria-hidden>
+            <AnimatePresence mode="wait" initial={false}>
+                {isOpen ? (
+                    <motion.span
+                        key="close"
+                        className="col-start-1 row-start-1"
+                        initial={{ scale: 0.25, opacity: 0, filter: 'blur(4px)' }}
+                        animate={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
+                        exit={{ scale: 0.25, opacity: 0, filter: 'blur(4px)' }}
+                        transition={sidebarIconTransition}
+                    >
+                        <IconArrowBarLeft size={16} strokeWidth={2} />
+                    </motion.span>
+                ) : (
+                    <motion.span
+                        key="open"
+                        className="col-start-1 row-start-1"
+                        initial={{ scale: 0.25, opacity: 0, filter: 'blur(4px)' }}
+                        animate={{ scale: 1, opacity: 1, filter: 'blur(0px)' }}
+                        exit={{ scale: 0.25, opacity: 0, filter: 'blur(4px)' }}
+                        transition={sidebarIconTransition}
+                    >
+                        <IconArrowBarRight size={16} strokeWidth={2} />
+                    </motion.span>
+                )}
+            </AnimatePresence>
+        </span>
+    );
+}
 
 export const Sidebar = () => {
     const { threadId: currentThreadId } = useParams({ strict: false });
@@ -81,7 +122,8 @@ export const Sidebar = () => {
     return (
         <div
             className={cn(
-                'relative bottom-0 left-0 top-0 z-[50] flex h-[100dvh] flex-shrink-0 flex-col py-2 transition-[width,box-shadow] duration-200',
+                'relative bottom-0 left-0 top-0 z-[50] flex h-[100dvh] flex-shrink-0 flex-col overflow-hidden py-2',
+                sidebarTransition,
                 isSidebarOpen
                     ? 'shadow-xs top-0 h-full w-[230px] bg-[#f4f4f4]'
                     : 'w-[50px] bg-[#f4f4f4]'
@@ -90,33 +132,30 @@ export const Sidebar = () => {
             <div className="flex w-full flex-1 flex-col overflow-hidden">
                 <div
                     className={cn(
-                        'mb-3 flex h-8 items-center px-3',
+                        'mb-3 flex h-8 items-center overflow-hidden px-3',
                         isSidebarOpen ? 'justify-between' : 'justify-center'
                     )}
                 >
-                    {isSidebarOpen && (
-                        <div className="flex min-w-0 items-center gap-2">
-                            <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#ff6b3d] text-[11px] font-semibold text-white">
-                                ✱
-                            </div>
-                            <span className="truncate text-sm font-semibold text-[#222]">
-                                Groot
-                            </span>
+                    <div
+                        className={cn(
+                            'flex min-w-0 items-center gap-2 overflow-hidden transition-[opacity,max-width] duration-150 ease-out motion-reduce:transition-none',
+                            isSidebarOpen ? 'max-w-[140px] opacity-100' : 'max-w-0 opacity-0'
+                        )}
+                    >
+                        <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[#ff6b3d] text-[11px] font-semibold text-white">
+                            ✱
                         </div>
-                    )}
+                        <span className="truncate text-sm font-semibold text-[#222]">Groot</span>
+                    </div>
                     <Button
                         variant="ghost"
-                        size="icon-xs"
+                        size="icon-sm"
                         onClick={() => setIsSidebarOpen(prev => !prev)}
-                        className="text-muted-foreground"
+                        className={cn('text-muted-foreground shrink-0', iconHitClass)}
                         tooltip={isSidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
                         tooltipSide={isSidebarOpen ? 'bottom' : 'right'}
                     >
-                        {isSidebarOpen ? (
-                            <IconArrowBarLeft size={16} strokeWidth={2} />
-                        ) : (
-                            <IconArrowBarRight size={16} strokeWidth={2} />
-                        )}
+                        <SidebarCollapseIcon isOpen={isSidebarOpen} />
                     </Button>
                 </div>
 
@@ -132,26 +171,26 @@ export const Sidebar = () => {
                         tooltip={isSidebarOpen ? undefined : 'New Chat (⌘N)'}
                         tooltipSide="right"
                         className={cn(
-                            'border-border/80 bg-background hover:bg-background h-9 min-w-0 rounded-lg border shadow-sm',
+                            'border-border/80 bg-background hover:bg-background min-w-0 rounded-lg border shadow-sm transition-[color,background-color,transform] duration-150',
                             isSidebarOpen
-                                ? 'flex-1 justify-start px-3'
-                                : 'w-full justify-center px-0'
+                                ? 'h-9 flex-1 justify-start gap-2 px-3'
+                                : 'h-9 w-9 shrink-0 justify-center gap-0 px-0 [&>svg]:m-0'
                         )}
                         onClick={handleNewChat}
                     >
                         <IconPlus
                             size={16}
                             strokeWidth={2}
-                            className={cn(isSidebarOpen && 'mr-1 shrink-0')}
+                            className={cn('shrink-0', isSidebarOpen && 'mr-1')}
                         />
                         {isSidebarOpen && (
-                            <>
+                            <span className="flex min-w-0 flex-1 items-center">
                                 <span className="text-sm">New</span>
                                 <span className="ml-auto flex items-center gap-1">
                                     <Kbd className="h-5 min-w-5 px-1 text-[10px]">⌘</Kbd>
                                     <Kbd className="h-5 min-w-5 px-1 text-[10px]">N</Kbd>
                                 </span>
-                            </>
+                            </span>
                         )}
                     </Button>
                     <Button
@@ -159,7 +198,10 @@ export const Sidebar = () => {
                         variant="secondary"
                         tooltip="Search (⌘K)"
                         tooltipSide="right"
-                        className="border-border/80 bg-background hover:bg-background h-9 w-9 shrink-0 rounded-lg border shadow-sm"
+                        className={cn(
+                            'border-border/80 bg-background hover:bg-background h-9 w-9 shrink-0 rounded-lg border shadow-sm transition-[color,background-color,transform] duration-150',
+                            iconHitClass
+                        )}
                         onClick={() => setIsCommandSearchOpen(true)}
                     >
                         <IconSearch size={16} strokeWidth={2} />
@@ -168,8 +210,10 @@ export const Sidebar = () => {
 
                 <div
                     className={cn(
-                        'border-border/70 no-scrollbar mt-3 w-full flex-1 overflow-y-auto border-t border-dashed px-3 py-5',
-                        isSidebarOpen ? 'flex flex-col gap-5' : 'hidden'
+                        'border-border/70 no-scrollbar mt-3 w-full flex-1 overflow-y-auto border-t border-dashed px-3 py-5 transition-[opacity,padding] duration-150 ease-out motion-reduce:transition-none',
+                        isSidebarOpen
+                            ? 'flex flex-1 flex-col gap-5 opacity-100'
+                            : 'pointer-events-none h-0 min-h-0 flex-none overflow-hidden opacity-0 py-0'
                     )}
                 >
                     <div className="flex flex-col gap-5">
@@ -181,11 +225,18 @@ export const Sidebar = () => {
                     </div>
                 </div>
 
-                <div className="mt-auto w-full p-2">
+                <div
+                    className={cn(
+                        'mt-auto w-full p-2',
+                        !isSidebarOpen && 'flex justify-center'
+                    )}
+                >
                     <div
                         className={cn(
-                            'border-border/80 bg-background flex h-10 items-center gap-2 rounded-lg border px-2 shadow-sm',
-                            !isSidebarOpen && 'justify-center px-0'
+                            'border-border/80 bg-background flex h-10 items-center rounded-lg border shadow-sm',
+                            isSidebarOpen
+                                ? 'w-full gap-2 px-2'
+                                : 'h-10 w-10 shrink-0 justify-center gap-0 px-0'
                         )}
                     >
                         <div className="bg-muted border-border flex size-6 shrink-0 items-center justify-center rounded-full border text-xs font-medium">
@@ -198,11 +249,15 @@ export const Sidebar = () => {
                                 </span>
                                 <button
                                     type="button"
-                                    className="text-muted-foreground hover:text-foreground rounded p-1"
+                                    className={cn(
+                                        'text-muted-foreground hover:text-foreground rounded p-1 transition-[color,transform] duration-150 active:scale-[0.96] motion-reduce:active:scale-100',
+                                        iconHitClass
+                                    )}
                                     onClick={() =>
                                         signOut({
                                             fetchOptions: {
-                                                onSuccess: () => navigate({ to: '/sign-in' }),
+                                                onSuccess: () =>
+                                                    navigate({ to: '/sign-in' }),
                                             },
                                         })
                                     }
